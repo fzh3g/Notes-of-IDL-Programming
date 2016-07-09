@@ -1,0 +1,5039 @@
+#+TITLE: Notes of IDL Programming
+#+AUTHOR: Faxiang Zheng
+#+OPTIONS: H:3 toc:nil ^:nil
+#+HTML_HEAD: <style>table.center {margin-left:auto; margin-right:auto;}</style>
+#+LATEX_CLASS: article
+#+LATEX_CLASS_OPTIONS: [12pt, titlepage]
+#+LATEX_HEADER: \newcommand{\tabincell}[2]{\begin{tabular}{@{}#1@{}}#2\end{tabular}}
+#+LATEX_HEADER: \usepackage{mathspec}
+#+LATEX_HEADER: \setmainfont{Georgia}
+#+LATEX_HEADER: \setmonofont[Scale=0.95]{Monaco}
+#+LATEX_HEADER: \usepackage{geometry}
+#+LATEX_HEADER: \geometry{ a4paper, total={160mm,247mm}, left=25mm, top=25mm, }
+#+LATEX_HEADER: \pagestyle{headings}
+
+* Before you start
+
+Assuming that you have IDL (version greater than or equal to 7.1) installed
+on your Linux,  MacOS or FreeBSD, there's some additional configuration that
+I recommend.
+
+** install Coyote and Catalyst Library
+
+Open your terminal (with bash or zsh), then copy and paste following
+commands
+
+#+BEGIN_SRC sh
+  mkdir -p ~/lib/idl/idl-coyote   # ~/lib/idl can be anywhere else
+  cd ~/lib/idl/idl-coyote
+  git init
+  git remote add origin https://github.com/davidwfanning/idl-coyote.git
+  echo "coyote" >> .git/info/sparse-checkout
+  echo "catalyst" >> .git/info/sparse-checkout
+  git config core.sparsecheckout true
+  git pull origin master
+#+END_SRC
+
+** install AstroLib
+
+#+BEGIN_SRC sh
+  cd ~/lib/idl
+  git clone https://github.com/wlandsman/IDLAstro.git astrolib
+#+END_SRC
+
+** install Motley Library
+
+#+BEGIN_SRC sh
+  cd ~/Downloads
+  wget http://www.idlcoyote.com/hadfield/idl/motley.tar.gz
+  mkdir ~/lib/idl/motley
+  tar -C ~/lib/idl/motley -zxvf motley.tar.gz
+#+END_SRC
+
+** install Gumley's IDL routines
+
+#+BEGIN_SRC sh
+  cd ~/Downloads
+  wget https://svn.ssec.wisc.edu/repos/geoffc/IDL/Gumley/PIP_programs.tar.Z
+  mkdir ~/lib/idl/gumley
+  tar -C ~/lib/idl/gumley -zxvf ~/Downloads/PIP_programs.tar.Z
+#+END_SRC
+** install Slug's IDL routines
+
+#+BEGIN_SRC sh
+  cd ~/Downloads
+  wget http://slugidl.pbworks.com/f/slug_idl.tar
+  mkdir ~/lib/idl/slug
+  tar -C ~/lib/idl/slug -xvf slug_idl.tar
+#+END_SRC
+** install TeXtoIDL
+
+#+BEGIN_SRC sh
+  cd ~/Downloads
+  wget http://physics.mnstate.edu/craig/textoidl/textoidl-2-1-2.tar
+  tar -C ~/lib/idl -xvf textoidl-2-1-2.tar
+#+END_SRC
+** setting PATH
+
+Add the following to your ~/.profile (bash user) or ~/.zshenv (zsh user)
+
+#+BEGIN_SRC sh
+  # IDL setting
+  export IDL_LIB_DIR=$HOME/lib/idl
+  export IDL_PATH='<IDL_DEFAULT>'
+  export IDL_PATH=$IDL_PATH:+'$IDL_LIB_DIR/idl-coyote/coyote'
+  export IDL_PATH=$IDL_PATH:+'$IDL_LIB_DIR/idl-coyote/catalyst'
+  export IDL_PATH=$IDL_PATH:+'$IDL_LIB_DIR/astrolib/pro'
+  export IDL_PATH=$IDL_PATH:+'$IDL_LIB_DIR/motley'
+  export IDL_PATH=$IDL_PATH:+'$IDL_LIB_DIR/gumley'
+  export IDL_PATH=$IDL_PATH:+'$IDL_LIB_DIR/slug'
+  export IDL_PATH=$IDL_PATH:+'$IDL_LIB_DIR/textoidl'
+#+END_SRC
+** startup file
+
+You can, of course, name the start-up file anything you like and locate it
+anywhere in your directory structure. For example, add the following to
+your ~/.profile (bash user) or ~/.zshenv (zsh user)
+
+#+BEGIN_SRC sh
+  export IDL_STARTUP=$HOME/.idlstartup.pro
+#+END_SRC
+
+I put something like
+
+#+BEGIN_SRC idl
+  print, 'Hello, ' + getenv('USER') + '! ' + 'IDL is ready :-)'
+#+END_SRC
+
+in my startup file.
+** editor
+
+*Emacs*, with its embedded /IDLWave-mode/ and /IDLWave-shell/, is a little
+slice of heaven for dealing with IDL source file and command line. You may
+have a look at [[https://github.com/zhengfaxiang/emacs.d][my Emacs configuration]].
+
+If your IDL version is 7.1, you might have to do something to fix a bug.
+
+- open your terminal and type
+
+  #+BEGIN_SRC sh
+    sudo mkdir /usr/local/itt/idl71/help/online_help
+    sudo ln -s /usr/local/itt/idl71/help/idl_catalog.xml \
+         /usr/local/itt/idl71/help/online_help/
+    sudo ln -s /usr/local/itt/idl71/help/idlithelp.xml \
+         /usr/local/itt/idl71/help/online_help/
+    sudo ln -s /usr/local/itt/idl71/help/template_help.xml \
+         /usr/local/itt/idl71/help/online_help/
+  #+END_SRC
+
+- open your Emacs and  /M-x idl-rescan-asynchronously/
+
+*Happy hacking!*
+** resources
+
+- [[http://www.idlcoyote.com/]]
+- http://www.idlcoyote.com/gallery/index.html
+- [[http://www.harrisgeospatial.com/docs/routines-1.html]]
+- [[http://www.harrisgeospatial.com/docs/PDF_Guides.html]]
+- [[http://idlastro.gsfc.nasa.gov/]]
+- [[http://astroplotlib.stsci.edu/]]
+- [[http://slugidl.pbworks.com/w/page/28913791/Plotting%2520Examples]]
+- [[http://www.astrobetter.com/wiki/tiki-index.php?page=Python+Switchers+Guide]]
+- url: https://pan.baidu.com/s/1eSlZ7vO passwd: t4x3
+- url: https://pan.baidu.com/s/1mhSk4YW passwd: h83i
+* Call system commands
+** spawn
+
+#+BEGIN_SRC idl
+  spawn, 'echo hello IDL!'
+  spawn, 'ls ~/',result
+  print, result
+#+END_SRC
+
+** $
+
+#+BEGIN_SRC idl
+  $cd ~
+  $ls
+#+END_SRC
+
+* Fundamentals of syntax
+** data types
+*** get data type and size
+**** /help/
+
+/help/ procedure is convenient to use in interactive mode
+
+#+BEGIN_SRC idl
+  a = dist(256)
+  help, a
+#+END_SRC
+
+**** /size/
+
+#+BEGIN_SRC idl
+  a=[[0, 1, 1], [2, 2, 1]]
+  print, 'Number of dimensions:', size(a, /n_dimensions)
+  print, 'Size of each dimension:', size(a, /dimensions)
+  print, 'Number of elements:', size(a, /n_elements)
+  print, 'Data type name:', size(a, /tname)
+  print, 'Data type index:', size(a, /type)
+#+END_SRC
+
+If no keywords are set, /SIZE/ returns a vector of integer type.
+The first element is equal to the number of dimensions of Expression.
+This value is zero if Expression is scalar or undefined. The next
+elements contain the size of each dimension, one element per
+dimension (none if Expression is scalar or undefined). After the
+dimension sizes, the last two elements contain the type code
+(zero if undefined) and the number of elements in Expression,
+respectively.
+
+#+BEGIN_SRC idl
+  data = dist(32)
+  result = size(data)
+  ndims = result[0]
+  if (ndims gt 0) then dims = result[1:dims] else dims = -1L
+  type = result[ndims + 1]
+  nele = result[ndims + 2]
+#+END_SRC
+
+The /n_elements/ is commonly used within IDL programs to test
+whether a variable (array or otherwise) is defined.
+
+*** type codes and names
+#+CAPTION: IDL Type Code and Names
+#+ATTR_LATEX: :placement [H]
+#+ATTR_HTML: :border 2 :rules all :frame border :class center
+|--------------------------+-----------+-------------|
+| Data type                | Type code | Type name   |
+|--------------------------+-----------+-------------|
+| Undefined                |         0 | 'UNDEFINED' |
+| Byte                     |         1 | 'BYTE'      |
+| Integer                  |         2 | 'INT'       |
+| Long Integer             |         3 | 'LONG'      |
+| Float                    |         4 | 'FLOAT'     |
+| Double precision         |         5 | 'DOUBLE'    |
+| Complex float            |         6 | 'COMPLEX'   |
+| String                   |         7 | 'STRING'    |
+| Structure                |         8 | 'STRUCT'    |
+| Complex double precision |         9 | 'DCOMPLEX'  |
+| Pointer                  |        10 | 'POINTER'   |
+| Object reference         |        11 | 'OBJECT'    |
+| Unsigned integer         |        12 | 'UINT'      |
+| Unsigned long integer    |        13 | 'ULONG'     |
+| 64-bit integer           |        14 | 'LONG64'    |
+| Unsigned 64-bit integer  |        15 | 'ULONG64'   |
+|--------------------------+-----------+-------------|
+
+*** data type and generate function
+#+CAPTION: Data types
+#+ATTR_LATEX: :placement [H]
+#+ATTR_HTML: :border 2 :rules all :frame border :class center
+|----------------+-------------+-------------------------+----------------------------|
+| Type           | Byte number | Create                  | Function                   |
+|----------------+-------------+-------------------------+----------------------------|
+| byte           |           1 | Var=0B                  | thisVar=Byte(variable)     |
+| int16          |           2 | Var=0                   | thisVar=Fix(variable)      |
+| int32          |           4 | Var=0L                  | thisVar=Long(variable)     |
+| int64          |           8 | Var=0LL                 | thisVar=Long64(variable)   |
+| uint16         |           2 | Var=0U                  | thisVar=UInt(variable)     |
+| uint32         |           4 | Var=0UL                 | thisVar=ULong(variable)    |
+| uint64         |           8 | Var=0ULL                | thisVar=Ulong64(variable)  |
+| float          |           4 | Var=0.0                 | thisVar=Float(variable)    |
+| double         |           8 | Var=0.0D                | thisVar=Double(variable)   |
+| complex        |           8 | Var=Complex(0.0,0.0)    | thisVar=Complex(variable)  |
+| double complex |          16 | Var=Dcomplex(0.0D,0.0D) | thisVar=DComplex(variable) |
+| string         |     0-32767 | Var='',Var=""           | thisVar=String(variable)   |
+| pointer        |           4 | Var=Ptr_New()           | None                       |
+| object         |           4 | Var=Obj_New()           | None                       |
+|----------------+-------------+-------------------------+----------------------------|
+
+*** data type and array/index generation
+#+CAPTION: Array/Index generation
+#+ATTR_LATEX: :placement [H]
+#+ATTR_HTML: :border 2 :rules all :frame border :class center
+|----------------+------------+---------------|
+| Type           | Array      | Index         |
+|----------------+------------+---------------|
+| byte           | BytArr     | BIndGen       |
+| int16          | IntArr     | IndGen        |
+| int32          | LonArr     | LIndGen       |
+| int64          | Lon64Arr   | L64IndGen     |
+| uint16         | UIntArr    | UIndGen       |
+| uint32         | ULon64Arr  | ULIndGen      |
+| uint64         | ULon64Arr  | UL64IndGen    |
+| float          | FltArr     | FIndGen       |
+| double         | DblArr     | DIndGen       |
+| complex        | ComplexArr | CIndGen       |
+| double complex | DCompexArr | DCIndGen      |
+| string         | StrArr     | SIndGen       |
+| pointer        | PtrArr     | None          |
+| object         | ObjArr     | None          |
+|----------------+------------+---------------|
+
+*** vector/array slicing
+
+#+BEGIN_SRC idl
+  vector1 = IndGen(4)
+  vector2 = vector1[0:2]
+  print, vector2
+#+END_SRC
+
+different from python
+
+#+BEGIN_SRC python :results output
+  import numpy as np
+  vector1 = np.arange(4)
+  vector2 = vector1[0:2]
+  print("vector2 = ", vector2)
+#+END_SRC
+
+#+RESULTS:
+: vector2 =  [0 1]
+
+array slicing is just the same
+you can easily get a row of the array or a subarray through it's indices
+
+*** ceil, floor, round and fix
+**** ceil
+
+The /CEIL/ function returns the closest integer greater than or equal to
+its argument.
+
+#+BEGIN_SRC idl
+  print, ceil(1.3)
+  print, ceil(-1.1)
+  print, ceil(3000000000.1D, /L64)
+#+END_SRC
+**** floor
+
+The /FLOOR/ function returns the closest integer less than or equal to
+its argument.
+
+#+BEGIN_SRC idl
+  print, floor(1.4)
+  print, floor(-1.2)
+  print, floor(3000000000.1D, /L64)
+#+END_SRC
+**** round
+
+The /ROUND/ function rounds the argument to its closest integer.
+
+#+BEGIN_SRC idl
+  print, round(5.5)
+  print, round(1.4)
+  print, round(-1.5)
+  print, round(3000000000.1D, /L64)
+#+END_SRC
+**** fix
+The /fix/ function returns the closest integer whose absolute value
+is less than or equal to its argument's.
+
+#+BEGIN_SRC idl
+  print, fix(1.5)
+  print, fix(-1.5)
+#+END_SRC
+
+** operators
+*** operators and precedence
+
+#+CAPTION: IDL operators
+#+ATTR_LATEX: :placement [H]
+#+ATTR_HTML: :border 2 :rules all :frame border :class center
+|----------+--------------------------+---------------------------------|
+| Operator | Meaning                  | Precedence level (1 is highest) |
+|----------+--------------------------+---------------------------------|
+| ()       | parentheses              |                               1 |
+|----------+--------------------------+---------------------------------|
+| *        | pointer dereference      |                               2 |
+| ^        | exponentiation           |                               2 |
+|----------+--------------------------+---------------------------------|
+| *        | scalar multiplication    |                               3 |
+| #        | array multiplication     |                               3 |
+| ##       | matrix multiplication    |                               3 |
+| /        | division                 |                               3 |
+| mod      | modulus                  |                               3 |
+|----------+--------------------------+---------------------------------|
+| +        | addition                 |                               4 |
+| -        | subtraction and negation |                               4 |
+| <        | minimum                  |                               4 |
+| >        | maximum                  |                               4 |
+| not      | boolean negation         |                               4 |
+|----------+--------------------------+---------------------------------|
+| eq       | equal to                 |                               5 |
+| ne       | not equal to             |                               5 |
+| le       | less than or equal to    |                               5 |
+| lt       | less than                |                               5 |
+| ge       | greater then or equal to |                               5 |
+| gt       | greater than             |                               5 |
+|----------+--------------------------+---------------------------------|
+| and      | boolean AND              |                               6 |
+| or       | boolean OR               |                               6 |
+| xor      | Boolean exclusive OR     |                               6 |
+|----------+--------------------------+---------------------------------|
+| ?:       | ternary operator         |                               7 |
+|----------+--------------------------+---------------------------------|
+| =        | assignment               |                               8 |
+|----------+--------------------------+---------------------------------|
+*** minimum and maximum operators
+
+#+BEGIN_SRC idl
+  a = [2, 4, 6, 8]
+  b = [3, 4, 5, 6]
+  print, a < b
+  print, 3 > a
+  print, -3 < (-indgen(9))
+#+END_SRC
+*** array and matrix multiplication operators
+
+#+BEGIN_SRC idl
+  a = indgen(3, 2) + 1
+  b = indgen(2, 3) - 1
+  print, a
+  print, b
+  c = a # b
+  print, c
+  print, transpose(c)
+  d = a ## b
+  print, d
+#+END_SRC
+*** relational and boolean operators
+
+#+BEGIN_SRC idl
+  a = 10.0
+  b = 20.0
+  help, a gt b
+  help, a lt b
+#+END_SRC
+
+#+CAPTION: True/false definitions
+#+ATTR_LATEX: :placement [H]
+#+ATTR_HTML: :border 2 :rules all :frame border :class center
+|----------------+-----------------------------+----------------------|
+| Data Type      | True                        | False                |
+|----------------+-----------------------------+----------------------|
+| Integer        | Odd nonzero values          | Zero and even values |
+| Floating point | Nonzero values              | Zero                 |
+| String         | Any string that is not null | Null string          |
+|----------------+-----------------------------+----------------------|
+
+#+BEGIN_SRC idl
+  a = [2, 4, 6, 8]
+  b = [3, 4, 5, 6]
+  print, a gt b
+#+END_SRC
+
+#+BEGIN_SRC idl
+  arr = byte([0, 1, 2, 3, 4])
+  print, arr
+  print, not arr
+  arr = long([0, 1, 2, 3, 4])
+  print, not arr
+#+END_SRC
+
+#+BEGIN_SRC idl
+  a = [0, 0, 1, 1, 2]
+  b = [0, 1, 1, 2, 2]
+  print, a or b
+  print, float(a) or float(b)
+  print, float(b) or float(a)
+#+END_SRC
+
+#+BEGIN_SRC idl
+  print, 4, format = '(b08)'
+  print, 5, format = '(b08)'
+  print, 4 xor 5, format = '(b08)'
+#+END_SRC
+*** ternary operator
+
+#+BEGIN_SRC idl
+  x = 10
+  y = 5
+  z = (x lt y) ? x : y
+  print, z
+#+END_SRC
+** arrays
+*** array generation
+**** general method
+
+#+BEGIN_SRC idl
+  array = [[1, 2, 3], [4, 5, 6]]
+#+END_SRC
+
+the same as
+
+#+BEGIN_SRC idl
+  vector = IndGen(6) + 1
+  array = Reform(vector, 3, 2)
+#+END_SRC
+
+**** /make_array/
+
+#+BEGIN_SRC idl
+  array1 = make_array(3, 3, /integer, /index)
+  array2 = make_array(3, 3, /integer, value=8)
+#+END_SRC
+*** properties
+#+CAPTION: Functions for array properties
+#+ATTR_LATEX: :placement [H]
+#+ATTR_HTML: :border 2 :rules all :frame border :class center
+|               | <50>                                               |
+|---------------+----------------------------------------------------|
+| Function name | Return                                             |
+|---------------+----------------------------------------------------|
+| n_elements()  | number of elements                                 |
+| size()        | array size and type information                    |
+| min()         | minimum array value                                |
+| max()         | maximum array value                                |
+| mean()        | mean of array values                               |
+| variance()    | variance of array values                           |
+| stddev()      | standard deviation of array values                 |
+| moment()      | \tabincell{l}{mean, variance, skew, kurtosis, standard\\ deviation, mean absolute deviation} |
+| total()       | sum of array values                                |
+|---------------+----------------------------------------------------|
+
+the /min/ function can also return the maximum value via the /max/
+keyword
+
+#+BEGIN_SRC idl
+  arr = dist(32)
+  print, min(arr), max(arr)
+  minval = min(arr, max=maxval)
+  print, minval, maxval
+  maxval = max(arr, index)
+  print, index
+#+END_SRC
+
+The /moment/ function returns the mean, variance, skew, and kurtosis
+of an array
+
+#+BEGIN_SRC idl
+  result = moment(arr)
+  print, result
+#+END_SRC
+
+If the optional /sdev/ and /mdev/ keyword are supplied, /moment/ also
+returns the standard deviation and mean absolute deviation
+
+#+BEGIN_SRC idl
+  result = moment(arr, sdev=sdev, mdev=mdev)
+  print, sdev, mdev
+#+END_SRC
+
+The /total/ function returns the total of an array
+
+#+BEGIN_SRC idl
+  arr = indgen(3, 3)
+  print, arr
+  print, total(arr)
+  print, total(arr, 1)
+  print, total(arr, 2)
+  print, total(arr, /cumulative)
+#+END_SRC
+*** location values within an array
+
+#+BEGIN_SRC idl
+  arr = indgen(9) * 10
+  print, arr
+  index = where(arr gt 35)
+  print, arr[index]
+
+  result = arr gt 35
+  print, result
+  index = where(result)
+  print, index
+  print, arr[index]
+
+  index1 = where((arr gt 35) and ((arr mod 4) eq 0))
+  print, arr[index1]
+#+END_SRC
+
+You should always account for the possibility that where will not
+find any non zero values in the input array or expression (i.e.,
+no values meet the prescribed conditions). In this case, where
+returns a scalar long equal to -1
+
+#+BEGIN_SRC idl
+  index2 = where(arr lt -10000.0, count)
+  help, index2
+  print, count
+  index3 = where(arr gt 2.0, count)
+  print, count
+#+END_SRC
+*** reform an array
+
+#+BEGIN_SRC idl
+  arr = indgen(6, 2)
+  print, arr
+  arr = reform(arr, 3, 4)
+  print, arr
+  col = arr[0, *]
+  col = reform(col)
+  help, col
+#+END_SRC
+
+To conserve the memory, the /overwrite/ keyword may be used with
+/reform/ to change the dimension information of an array without
+making a copy of the array
+
+#+BEGIN_SRC idl
+  arr = dist(32)
+  help, arr
+  arr = reform(arr, 32L * 32L, /overwrite)
+  help, arr
+#+END_SRC
+*** reversing array elements
+
+#+BEGIN_SRC idl
+  arr = indgen(5)
+  print, arr
+  print, reverse(arr)
+
+  arr = indgen(3, 3)
+  print, arr
+  print, reverse(arr)
+  print, reverse(arr, 1)
+  print, reverse(arr, 2)
+#+END_SRC
+*** rotating arrays
+
+#+BEGIN_SRC idl
+  arr = indgen(4, 3)
+  print, arr
+  print, rotate(arr, 1)
+  print, rotate(arr, 2)
+  print, rotate(arr, 3)
+#+END_SRC
+
+The direction flags 0, 1, 2, 3 specify rotations of 0, 90, 180 and 270
+degrees, respectively.
+*** transposing arrays
+
+#+BEGIN_SRC idl
+  arr = indgen(4, 3)
+  print, arr
+  help, transpose(arr)
+  print, transpose(arr)
+
+  arr = indgen(2, 4, 6)
+  help, transpose(arr)
+  help, transpose(arr, [1, 2, 0])
+#+END_SRC
+*** shifting arrays
+
+#+BEGIN_SRC idl
+  arr = indgen(5)
+  print, shift(arr, 1)
+  print, shift(arr, -2)
+
+  arr = indgen(3, 3)
+  print, arr
+  print, shift(arr, 0, 1)
+#+END_SRC
+*** sorting arrays
+
+#+BEGIN_SRC idl
+  arr = [5, 3, 9, 4, 0, 2]
+  index = sort(arr)
+  print, index
+  print, arr[index]
+
+  print, sort([1, 1, 1, 1, 1, 1])
+  print, sort([0, 0, 1, 1, 2, 2])
+#+END_SRC
+*** finding unique array values
+
+#+BEGIN_SRC idl
+  arr = [20, 30, 20, 40, 40, 30, 50, 60, 10]
+  arr = arr[sort(arr)]
+  arr = arr[uniq(arr)]
+  print, arr
+#+END_SRC
+
+If you want to extract unique values form an array while preserving the
+order of the elements.
+
+#+BEGIN_SRC idl
+  arr = [20, 30, 20, 40, 40, 30, 50, 60, 10]
+  sort_index = sort(arr)
+  uniq_index = uniq(arr[sort_index])
+  index = sort_index[uniq_index]
+  index = index[sort(index)]
+  print, arr[index]
+#+END_SRC
+
+*** array resizing
+**** functions
+#+CAPTION: Functions for array resizing
+#+ATTR_LATEX: :placement [H]
+#+ATTR_HTML: :border 2 :rules all :frame border :class center
+|               | <25>                      | <25>                      |
+|---------------+---------------------------+---------------------------|
+| Function Name | Purpose                   | Algorithm                 |
+|---------------+---------------------------+---------------------------|
+| rebin()       | \tabincell{l}{ Resize an n-dimensional array by\\ an integer multiple or factor} | \tabincell{l}{ Default is linear interpolation for\\ enlarging and neighborhood averaging\\ for shrinking. Nearest-neighbor\\ sampling is optional.} |
+| congrid()     | \tabincell{l}{ Resize a one-, two-, or three-\\ dimensional array to an arbitrary\\ size (user-friendly version)} | \tabincell{l}{ Default is nearest-neighbor sampling.\\ Linear or cubic convolution\\ interpolation is optional.} |
+| interpolate() | \tabincell{l}{ Resize a one-, two-, or three-\\ dimensional array to an arbitrary\\ size (generalized version).} | \tabincell{l}{ Default is linear interpolation. Cubic\\ convolution interpolation is optional.} |
+|---------------+---------------------------+---------------------------|
+
+**** resizing by an integer factor
+
+#+BEGIN_SRC idl
+  arr = [20, 40, 60]
+  print, rebin(arr, 9)
+  print, rebin(arr, 9, /sample)
+#+END_SRC
+
+Setting the /sample/ keyword (sample or sample = 1) causes nearest
+neighbor sampling to be used for enlarging or shrinking. If the /sample/
+keyword is not set (sample absent or sample = 0), then linear interpolation is
+used for enlarging, yielding quite different results.
+
+When shrinking an array, /rebin/ uses neighborhood averaging.
+
+#+BEGIN_SRC idl
+  arr = indgen(9)
+  print, arr
+  print, rebin(arr, 3)
+#+END_SRC
+
+The /rebin/ function is useful when you wish to create multidimensional
+grid arrays.
+
+#+BEGIN_SRC idl
+  v = indgen(5)
+  print, v
+  print, rebin(v, 5, 3, /sample)
+  print, rebin(reform(v, 1, 5), 3, 5, /sample)
+  print, rebin(reform(v, 1, 5), 3, 5, 3, /sample)
+#+END_SRC
+
+**** resizing to arbitrary size
+
+The /congrid/ function enlarges or shrinking a one-, two-, or three-
+dimensional array to an arbitrary size. The default is to use nearest
+neighbor sampling.
+
+#+BEGIN_SRC idl
+  arr = [20, 40, 60]
+  print, congrid(arr, 4)
+  print, congrid(arr, 5)
+  print, congrid(arr, 6)
+  print, congrid(arr, 7)
+  print, congrid(arr, 8)
+  print, congrid(arr, 9)
+
+  ix = 3
+  nx = 9
+  index = (float(ix) / float(nx)) * findgen(nx)
+  print, index, format='(9f6.2)'
+  index = round(index)
+  print, index, format='(9i6)'
+  print, arr[index], format='(9i6)'
+#+END_SRC
+
+If the optional /minus_one/ keyword is set, then /congrid/ uses a slightly
+different algorithm to compute the resampled index array. You may set
+/interp/ keyword to use linear interpolation.
+
+#+BEGIN_SRC idl
+  print, congrid(arr, 9, /interp)
+  print, congrid(arr, 9, /interp, /minus_one)
+#+END_SRC
+
+**** resizing to arbitrary size with customized interpolation
+
+The i nterp01 ate function differs from congri d in that with interpolate,
+you specify the exact locations for which you desire interpolated values
+
+#+BEGIN_SRC idl
+  arr = [10.0, 20.0, 30.0]
+  loc = [0.0, 0.5, 1.0, 1.5, 2.0]
+  print, interpolate(arr, loc)
+#+END_SRC
+
+To resize a two-dimensional array (such as an image) with /interpolate/,
+you must choose an algorithm to compute the locations for the interpolated
+array values. The /grid/ keyword allows the location arrays to have a
+different size in each output array dimension.
+
+#+BEGIN_SRC idl
+  a = dist(32, 32)
+  nx = 500
+  ny = 500
+  dims = size(a, /dimensions)
+  xloc = (findgen(nx) + 0.5) * (dims[0] / float(nx)) - 0.5
+  yloc = (findgen(ny) + 0.5) * (dims[0] / float(ny)) - 0.5
+  b = interpolate(a, xloc, yloc, /grid)
+  help, b
+  tvscl, b
+  c = interpolate(a, round(xloc), round(yloc), /grid)
+  tvscl, c
+#+END_SRC
+
+*** removing rows or columns
+
+#+BEGIN_SRC idl
+  arr = findgen(10, 1000)
+  delrow = [16, 200, 545, 762, 998]
+  dims = size(arr, /dimensions)
+  nrows = dims[1]
+  help, nrows
+  index = replicate(1L, nrows)
+  index[delrow] = 0L
+  keeprow = where(index eq 1)
+  arr = arr[*, keeprow]
+  help, arr
+#+END_SRC
+
+** structures
+*** anonymous structures
+
+#+BEGIN_SRC idl
+  image = {name:'Test Image', valid_range:[0.0, 100.0], $
+           data:dist(256)}
+  help, image
+  help, image, /structure
+  help, image.(0)
+#+END_SRC
+
+#+BEGIN_SRC idl
+  image.data = image.data * (1.0 / max(image.data))
+  image.name = 'Normalized Test Image'
+  image.valid_range = [0.0, 1.0]
+#+END_SRC
+*** arrays of structures
+
+#+BEGIN_SRC idl
+  images = replicate(image, 10)
+  help, images
+  help, images[0]
+#+END_SRC
+*** named structures
+
+#+BEGIN_SRC idl
+  rec = {nav_record, time:0.0, lat:0.0, lon:0.0, $
+         heading:0.0}
+  help, rec
+  a = {nav_record}
+  a.time = 12.25
+  b = rec
+  b.time = 13.50
+  data = replicate({nav_record}, 100)
+  help, data
+  c = [a, b]
+  help, c
+#+END_SRC
+*** working with structures
+
+#+BEGIN_SRC idl
+  image = {name:'Test Image', valid_range:[0.0, 100.0], $
+           data:dist(256)}
+  print, n_tags(image)
+  print, tag_names(image)
+#+END_SRC
+
+#+BEGIN_SRC idl
+  image = create_struct('data', dist(256), $
+                        'valid_range', [0.0, 100.0])
+  image = create_struct(image, 'date', systime())
+  help, image.data
+  help, image.date
+#+END_SRC
+
+** pointers
+*** functions and procedures
+
+#+CAPTION: Functions and procedures for pointers
+#+ATTR_LATEX: :placement [H]
+#+ATTR_HTML: :border 2 :rules all :frame border :class center
+|-------------+---------------------------------|
+| Name        | Purpose                         |
+|-------------+---------------------------------|
+| ptr_new()   | return a new pointer            |
+| ptrarr()    | return an array of new pointers |
+| ptr_free    | free an array of new pointers   |
+| ptr_valid() | check the validity of a pointer |
+|-------------+---------------------------------|
+*** creating pointers
+
+#+BEGIN_SRC idl
+  p = ptr_new(1.0)
+  help, p
+  print, *p
+  arr = indgen(5)
+  ptr1 = ptr_new(arr)
+  help, *ptr1
+#+END_SRC
+
+#+BEGIN_SRC idl
+  ptr2 = ptr_new(/allocate_heap)
+  help, *ptr2
+  *ptr2 = dist(256)
+  help, *ptr2
+#+END_SRC
+
+to create a pointer array
+
+#+BEGIN_SRC idl
+  ptr = ptrarr(10, /allocate_heap)
+  *ptr[0] = dist(256)
+  *ptr[1] = indgen(10)
+  help, *ptr[0:2]
+#+END_SRC
+*** freeing pointers
+
+#+BEGIN_SRC idl
+  ptr = ptr_new(10.0)
+  ptr_free, ptr
+#+END_SRC
+*** checking pointer validity
+
+#+BEGIN_SRC idl
+  ptr = ptr_new(10.0)
+  print, ptr_valid(ptr)
+  ptr_free, ptr
+  print, ptr_valid(ptr)
+#+END_SRC
+*** pointer dereferencing
+
+#+BEGIN_SRC idl
+  ptr = ptr_new(indgen(4, 4))
+  print, *ptr
+  print, (*ptr)[0, *]
+#+END_SRC
+
+if a pointer is included in a structure, the dereference operator is
+placed immediately before he structure name
+
+#+BEGIN_SRC idl
+  rec = {flag:1L, data_ptr:ptr_new(indgen(5))}
+  print, *rec.data_ptr
+  struct_ptr = ptr_new(rec)
+  print, *(*struct_ptr).data_ptr
+#+END_SRC
+*** avoiding pointer problems
+
+To see a list of all variables in memory that are currently referenced
+by a pointer, or were previously referenced by a pointer
+
+#+BEGIN_SRC idl
+  help, /heap_variables
+#+END_SRC
+
+To guard against memory leakage, you can test the proposed pointer
+variable to see if it is already a valid pointer
+
+#+BEGIN_SRC idl
+  if (ptr_valid(ptr) eq 1) then ptr_free, ptr
+  ptr = ptr_new(10.0)
+#+END_SRC
+
+To perform garbage collection, call the /heap_gc/ procedure with the
+/ptr/ and /verbose/ keyword set
+
+#+BEGIN_SRC idl
+  ptr = ptr_new(dist(256))
+  ptr = ptr_new(indgen(10))
+  ptr = ptr_new(2.0)
+  heap_gc, /ptr, /verbose
+#+END_SRC
+
+* Basic I/O
+** standard input and output
+*** procedures and functions
+
+#+CAPTION: procedures and functions for standard I/O
+#+ATTR_LATEX: :placement [H]
+#+ATTR_HTML: :border 2 :rules all :frame border :class center
+|----------+-----------------------------------------|
+| Name     | Purpose                                 |
+|----------+-----------------------------------------|
+| print    | write formatted data to standard output |
+| read     | read formatted data from standard input |
+| reads    | read formatted data from a string       |
+| string() | write formatted data to a string        |
+|----------+-----------------------------------------|
+*** format
+
+[[https://www.exelisvis.com/docs/format_codes.html]]
+
+The syntax of an IDL format code is:
+
+#+BEGIN_SRC idl
+  [n]FC[+][-][width]
+#+END_SRC
+
+where:
+#+CAPTION: format code syntax
+#+ATTR_LATEX: :placement [H]
+#+ATTR_HTML: :border 2 :rules all :frame border :class center
+|-------+-----------------------------------------------------------------------|
+| Code  | Description                                                           |
+|-------+-----------------------------------------------------------------------|
+| n     | the number of times the format code should be processed               |
+| FC    | the format code                                                       |
+| +     | a + prefix before positive numbers that only valid for numeric format |
+| -     | left-justified                                                        |
+| width | width specification                                                   |
+|-------+-----------------------------------------------------------------------|
+
+#+CAPTION: format codes
+#+ATTR_LATEX: :placement [H]
+#+ATTR_HTML: :border 2 :rules all :frame border :class center
+|---------------------+--------------------------------------------------------------|
+| Format Code         | Description                                                  |
+|---------------------+--------------------------------------------------------------|
+| a                   | character                                                    |
+| :                   | terminates processing                                        |
+| $                   | suppresses newlines in output                                |
+| F,D,E,G             | floating-point                                               |
+| B,I,O,Z             | integer (B:Binary,I:Decimal,O:Octal,Z:Hexadecimal)           |
+| Q                   | the number of characters                                     |
+| quoted string and H | output string directly                                       |
+| T                   | specifies the absolute position within a record              |
+| TL                  | moves the position with a record to the left                 |
+| TR and X            | move the position within a record to the right               |
+| C()                 | transfers calendar data                                      |
+| C printf-style      | an alternative syntax for specifying the format of an output |
+| $/$                 | newline                                                      |
+|---------------------+--------------------------------------------------------------|
+
+examples:
+
+#+BEGIN_SRC idl
+  print, format='(a)', 'hello world'
+  print, format='(a7)', 'hello world'
+  print, format='(i12)', 300
+  print, format='(i12.8)', 300
+  print, format='(i08)', 300
+  print, format='(b)', 7
+  print, format='(o)', 7
+  print, format='(z)', 12
+  print, format='(3f12.3)', findgen(3) * 500
+  print, format='(f12.3, f10.2, f10.1)', findgen(3) * 500
+  print, format='(3f12.3)', findgen(9) * 500
+  print, format='(3(f12.3, :, ", "))', findgen(9) * 500
+  print, format='(3(e12.3, :, ", "))', findgen(9) * 500
+  print, format='(3(e+12.3, :, "$"))', findgen(9) * 500 - 1000
+  print, format='(g12.4)', 10
+  print, format='(g12.4)', 10000000
+#+END_SRC
+
+#+BEGIN_SRC idl
+  .run
+  pro format_test
+    name = ''
+    age = 0
+    print, format='($, "Enter your name")'
+    read, name
+    print, format='("Enter your age")'
+    read, age
+    print, format='("You are ", i0, " years old, ", a0)', age, name
+  end
+
+  format_test
+#+END_SRC
+
+#+BEGIN_SRC idl
+  read, format='(q)', charnumber
+  print, charnumber
+#+END_SRC
+
+#+BEGIN_SRC idl
+  print, format='("Value: ", I0)', 23
+  print, format='(7HValue: , I0)', 23
+#+END_SRC
+
+#+BEGIN_SRC idl
+  print, format='("First", 20X, "Last", T10, "Middle")'
+  print, format='("First", 20X, "Last", TL15, "Middle")'
+  print, format='("First", TR15, "Last")'
+#+END_SRC
+
+#+BEGIN_SRC idl
+  print, systime()
+  print, systime(/utc)
+  print, systime(1)
+  print, systime(/julian)
+  curtime = systime(/julian)
+  print, format='(c())', curtime
+  print, format='(c(CYI, "-", CMOI, "-", CDI))', curtime
+  print, format='(c(CHI, ":", CMI, ":", CSI))', curtime
+#+END_SRC
+** working with files
+*** procedures and functions
+
+#+CAPTION: procedures and functions for working with files
+#+ATTR_LATEX: :placement [H]
+#+ATTR_HTML: :border 2 :rules all :frame border :class center
+|-------------------+---------------------------------------------------------|
+| Name              | Purpose                                                 |
+|-------------------+---------------------------------------------------------|
+| openr             | open an existing file for read only                     |
+| openw             | open a new file for read and write,overwrite if existed |
+| openu             | open an existing file for updating,i.e.,read and write  |
+| findfile()        | return names of files in the current directory          |
+| dialog_pickfile() | graphical file selector                                 |
+| fstat()           | return information about an open file                   |
+| eof()             | check for end-of-file                                   |
+| close             | close a file                                            |
+| free_lun          | free a logical unit number and close a file             |
+|-------------------+---------------------------------------------------------|
+
+*** opening files
+
+Read and write operations are performed using the logical unit
+number to reference the file.
+
+a specific logical unit number, which may be set to a scalar long
+value in the range of 1 to 99
+
+#+BEGIN_SRC idl
+  lun = 20l
+  openw, lun, 'test.dat'
+  free_lun, lun
+#+END_SRC
+
+#+BEGIN_SRC idl
+  openr, 5, filename
+  close, 5
+#+END_SRC
+
+assign a free logical unit, an unused logical unit number in the
+range of 100 to 128 will be assigned
+
+#+BEGIN_SRC idl
+  openw, lun, 'test.dat', /get_lun
+  free_lun, lun
+#+END_SRC
+
+*** selecting a file
+
+#+BEGIN_SRC idl
+  list = findfile()
+  print, list
+#+END_SRC
+
+#+BEGIN_SRC idl
+  list = findfile('*.dat')
+  list = findfile('*.dat', count=numfiles)
+#+END_SRC
+
+#+BEGIN_SRC idl
+  file = dialog_pickfile()
+  file = dialog_pickfile(filter='*.dat')
+  file = dialog_pickfile(filter='*.pro', /multiple)
+  directory = dialog_pickfile(/directory)
+#+END_SRC
+
+most of the time, if we include a /Dialog_Pickfile/ in a program,
+we just check for the null string returned from the dialog and
+return out of the program
+
+#+BEGIN_SRC idl
+  file = dialog_pickfile(file='*.jpg', path=!dir)
+  if file eq '' then return
+#+END_SRC
+
+*** /filepath/
+
+#+BEGIN_SRC idl
+  galaxy = filepath('galaxy.dat', subdirectory=['examples', 'data'])
+#+END_SRC
+
+#+BEGIN_SRC idl
+  cd, current=thisdir
+  galaxy = filepath('galaxy.dat', root_dir=thisdir, $
+                    subdirectory='coyote')
+#+END_SRC
+
+*** obtaining information about files
+**** specific lun
+
+#+BEGIN_SRC idl
+  file = filepath('hurric.dat', subdir='examples/data')
+  openr, lun, file, /get_lun
+  info = fstat(lun)
+  help, info.size, info.read, info.name
+  free_lun, lun
+#+END_SRC
+
+**** all luns
+
+#+BEGIN_SRC idl
+  help, /files
+#+END_SRC
+
+if you want to close all files
+
+#+BEGIN_SRC idl
+  close, /all
+#+END_SRC
+
+*** reading and writing formatted (ASCII) files
+**** reading a formatted file
+
+if the size data is known
+
+#+BEGIN_SRC idl
+  openr, lun, 'input.dat', /get_lun
+  data = lonarr(10,100)
+  readf, lun, data, format='(10i6)'
+  free_lun, lun
+#+END_SRC
+
+if you want to read a formatted file that has a known format
+but an unknown length,e.g.,in the following format:
+
+#+BEGIN_EXAMPLE
+22:02:13.34UTC -29.93455 -116.0234W 234.2
+22:02:14.33UTC -29.9357S -116.0232W 234.1
+22:02:15.34UTC -29.9362S -116.0230W 234.1
+22:02:16.35UTC -29.9367S -116.0228W 234.2
+22:02:17.36UTC -29.9373S -116.0226W 234.2
+22:02:18.34UTC -29.9378S -116.0224W 234.3
+#+END_EXAMPLE
+
+#+BEGIN_SRC idl
+  FUNCTION READ_POSITION, FILE, MAXREC=MAXREC
+
+    ;; check argument
+    if (n_elements(file) eq 0) then $
+       message, 'Argument FILE is undefined'
+    if (n_elements(maxrec) eq 0) then $
+       maxrec = 10000L
+
+    ;; open input file
+    openr, lun, file, /get_lun
+
+    ;; define record structure and create array
+    fmt = '(2(i2, 1x), f5.2, 4x, f8.4, 2x, f9.4, 2x, f5.1)'
+    record = {hour:0L, min:0L, sec:0.0, $
+              lat:0.0, lon:0.0, head:0.0}
+    data = replicate(record, maxrec)
+
+    ;; read record until end-of-file reached
+    nrecords = 0L
+    recnum = 1L
+    while (eof(lun) ne 1) do begin
+
+       ;; read this record (jumps to bad_rec: on error)
+       on_ioerror, bad_rec
+       error = 1
+       readf, lun, record, format=fmt
+       error = 0
+
+       ;; store data for this record
+       data[nrecords] = record
+       nrecords = nrecords + 1
+
+       ;; check if maximum record count exceeded
+       if (nrecords eq maxrec) then begin
+          free_lun, lun
+          message, 'Maximum record reached: increase MAXREC'
+       endif
+
+       ;; check for bad input record
+       bad_rec:
+       if (error eq 1) then $
+          print, 'Bad data at record', recnum
+       recnum = recnum + 1
+
+    endwhile
+
+    ;; close input file
+    free_lun, lun
+
+    ;; trim data array and return it to caller
+    data = data[0 : records - 1]
+    return, data
+
+  END
+#+END_SRC
+
+#+BEGIN_SRC idl
+  result = read_position('position.dat')
+  print, result[0].sec, result[0].lat
+#+END_SRC
+
+The /on_ioerror/ procedure is used to handle any errors when
+reading from the input file, such as a record that with an invalid
+format.
+**** writing a formatted file
+
+The /printf/ procedure writes data to a formatted file that has
+been opened for writing or updating.
+
+#+BEGIN_SRC idl
+  data = lindgen(10, 100)
+  openw, lun, 'output.data', /get_lun
+  printf, lun, data, format='(10i6)'
+  free_lun, lun
+#+END_SRC
+
+If you use /printf/ (instead of /print/) in your program, it's
+easy to send the printed output to the screen by default, or to
+an output file if required. This is possible because the logical
+unit number -1 is reserved for standard output.
+
+#+BEGIN_SRC idl
+  PRO REDIRECT, OUTFILE=OUTFILE
+
+    ;; Select logical unit for output
+    if (n_elements(outfile) eq 1) then begin
+       openw, outlun, outfile, /get_lun
+    endif else begin
+       outlun = -1
+    endelse
+
+    ;; printf is used in the program for output
+    printf, outlun, 'Starting program execution at', system()
+
+    ;; Body of the program goes here
+
+    ;; Close the output file if needed
+    if (outlun gt 0) then free_lun, outlun
+
+  END
+
+#+END_SRC
+
+Formatted output to a file is limited to 80 columns by default.
+To increase the default output width, use the /width/ keyword
+when the /openw/ or /openu/ procedure is called
+
+#+BEGIN_SRC idl
+  openw, lun, 'wide.dat', /get_lun, width=150
+  printf, lun, findgen(100), format='(10f10.2)'
+  free_lun, lun
+#+END_SRC
+*** reading and writing unformatted (binary) files
+**** procedures and functions
+
+#+CAPTION: procedures and functions for unformatted I/O
+#+ATTR_LATEX: :placement [H]
+#+ATTR_HTML: :border 2 :rules all :frame border :class center
+|-----------+--------------------------------------------------|
+| Name      | Purpose                                          |
+|-----------+--------------------------------------------------|
+| readu     | read data from an unformatted file               |
+| point_lun | reposition the file pointer in an open file      |
+| writeu    | write data to an unformatted file                |
+| assoc()   | associate an logical unit number with a variable |
+| save      | save variable in a portable IDL-specific format  |
+| restore   | restore variables from a save file               |
+|-----------+--------------------------------------------------|
+**** reading an unformatted file (single data type)
+
+If an unformatted file contains only one kind of binary data
+(e.g., byte), and the file size is known in advance, then reading
+the contents of the file is straightforward.
+
+#+BEGIN_SRC idl
+  file = filepath('ctscan.dat', subdir='examples/data')
+  openr, lun, file, /get_lun
+  data = bytarr(256, 256)
+  readu, lun, data
+  free_lun, lun
+  tvscl, data
+#+END_SRC
+
+If the size of the file is not known in advance, but the size of
+each record is known
+
+#+BEGIN_SRC idl
+  file = filepath('hurric.dat', subdir='examples/data')
+  openr, lun, file, /get_lun
+  info = fstat(lun)
+  ncols = 440L
+  nrows = info.size / ncols
+  data = bytarr(ncols, nrows)
+  readu, lun, data
+  free_lun, lun
+  tvscl, data
+#+END_SRC
+**** reading an unformatted file (mixed data type)
+
+Unformatted data files may contain more than one data type
+per record.
+
+#+BEGIN_SRC idl
+  FUNCTION READ_WEATHER, FILE
+
+    ;; Check argument
+    if (n_elements(file) eq 0) then $
+       message, 'Argument FILE is undefined'
+
+    ;; Open the input file
+    openr, lun, file, /get_lun
+
+    ;; Define record structure, and create data array
+    record = {id:0L, year:0, month:0, day:0, hour:0, minute:0, $
+              pres:0.0, temp:0.0, dewp:0.0, speed:0.0, dir:0.0}
+    data = replicate(record, 24L * 60L)
+
+    ;; Read records from the file until EOF
+    nrecords = 0
+    while (eof(lun) ne 1) do begin
+       readu, lun, record
+       data[nrecords] = record
+       nrecords = nrecords + 1
+    endwhile
+
+    ;; Close the input file
+    free_lun, lun
+
+    ;; Trim the data array, and return it to caller
+    data = data[0 : nrecords - 1]
+    return, data
+
+  END
+
+#+END_SRC
+**** reading a Fortran-77 unformatted file
+
+Files that are written in Fortran-77 unformatted sequential access
+mode have extra information attached to the beginning and end of
+each data record. For example, consider the following Fortran-77
+program:
+
+#+BEGIN_SRC fortran
+        program unformatted_test
+  !     Fortran-77 program to produce unformatted output
+        implicit none
+        integer :: a(10)
+        real :: b(5)
+        integer :: index
+        do index = 1, 10
+           a(index) = index
+        end do
+        do index = 1, 5
+           b(index) = real(index * 10)
+        end do
+        open(30, file='unformatted_test.dat', form='unformatted')
+        write(30) a
+        write(30) b
+        close(30)
+        end
+
+#+END_SRC
+
+to read the contents of the output file
+
+#+BEGIN_SRC idl
+  openr, lun, 'unformatted_test.dat', /get_lun, /f77_unformatted
+  a = lonarr(10)
+  b = fltarr(5)
+  readu, lun, a
+  readu, lun, b
+  free_lun, lun
+  print, a, format='(10i4)'
+  print, b, format='(5f5.1)'
+#+END_SRC
+**** repositioning the file pointer
+
+The file pointer points to the position in the file where the next
+read or write request will begin. Every time a read or write
+request is issued, the file pointer is moved the appropriate
+number of bytes further along in the file.
+
+#+BEGIN_SRC idl
+  openr, lun, 'tapefile.dat', /get_lun
+  point_lun, lun, 1024L
+  data = bytarr(512, 512)
+  readu, lun, data
+  free_lun, lun
+#+END_SRC
+
+to get the current position of the file pointer
+
+#+BEGIN_SRC idl
+  info = fstat(lun)
+  position = info.cur_ptr
+#+END_SRC
+**** writing binary data to an unformatted file
+
+When writing binary data to a file, it can be helpful to first
+write a header record that records the size and type of the data
+contained in the file.
+
+#+BEGIN_SRC idl
+  data = dist(256)
+  openw, lun, 'dist.dat', /get_lun
+  info = size(data)
+  info_size = n_elements(info)
+  header = [info_size, info]
+  writeu, lun, header
+  writeu, lun, data
+  free_lun, lun
+#+END_SRC
+
+to read the file, you would first read the header, and then use
+the /make_array/ function to create an array of the correct size
+and type to hold the data:
+
+#+BEGIN_SRC idl
+  openr, lun, 'dist.dat', /get_lun
+  info_size = 0L
+  readu, lun, info_size
+  info = lonarr(info_size)
+  readu, lun, info
+  data = make_array(size=info)
+  readu, lun, data
+  free_lun, lun
+#+END_SRC
+**** programs to write and read portable binary data
+
+The /binread/ procedure allows you to read one or more arrays from
+a binary unformatted file created by /binwrite/ in
+first-in/first-out order. The "magic" value allows /binread/ to
+determine whether or not byte swapping is required
+
+
+#+BEGIN_SRC idl
+  PRO BINWRITE, LUN, DATA
+
+    ;; Check arguments
+    if (n_elements(lun) eq 0) then $
+       message, 'LUN is undefined'
+    if (n_elements(data) eq 0) then $
+       message, 'DATA is undefined'
+
+    ;; Check that file is open
+    result = fstat(lun)
+    if (result.open eq 0) then $
+       message, 'LUN does not point to an open file'
+
+    ;; Check that data type is allowed
+    type_name = size(data, /tname)
+    if (type_name eq 'STRING') or $
+       (type_name eq 'STRUCT') or $
+       (type_name eq 'POINTER') or $
+       (type_name eq 'OBJREF') then $
+          message, 'DATA type is not supported'
+
+    ;; Check that DADA is an array
+    if (size(data, /n_dimensions) lt 1) then $
+       message, 'DATA must be an array'
+
+    ;; Create header array
+    magic_value = 123456789L
+    info = size(data)
+    info_size = n_elements(info)
+    header = [magic_value, info_size, info]
+
+    ;; Write header and data to file
+    writeu, lun, header
+    writeu, lun, data
+
+  END
+#+END_SRC
+
+
+#+BEGIN_SRC idl
+  PRO BINREAD, LUN, DATA
+
+    ;; Check arguments
+    if (n_elements(lun) eq 0) then $
+       message, 'LUN is undefined'
+    if (arg_present(data) eq 0) then $
+       message, 'DATA cannot be modified'
+
+    ;; Check that file is open
+    result = fstat(lun)
+    if (result.open eq 0) then $
+       message, 'LUN does not point to an open file'
+
+    ;; Read magic value
+    magic_value = 0L
+    readu, lun, magic_value
+
+    ;; Devode magic value to see if byte swapping is required
+    swap_flag = 0
+    if (magic_value ne 123456789L) then begin
+       magic_value = swap_endian(magic_value)
+       if (magic_value eq 123456789L) then begin
+          swap_flag = 1
+       endif else begin
+          message, 'File was not written with BINWRITE'
+       endelse
+    endif
+
+    ;; Read the header, swapping if necessary
+    info_size = 0L
+    readu, lun, info_size
+    if swap_flag then info_size = swap_endian(info_size)
+    info = lonarr(info_size)
+    readu, lun, info
+    if swap_flag then info = swap_endian(info)
+
+    ;; Read the data, swapping if necessary
+    data = make_array(size=info)
+    readu, lun, data
+    if swap_flag then data = swap_endian(temporary(data))
+
+  END
+#+END_SRC
+
+example of usage
+
+#+BEGIN_SRC idl
+  a = dist(256)
+  b = lindgen(1000)
+  openw, lun, 'test.dat', /get_lun
+  binwrite, lun, a
+  binwrite, lun, b
+  free_lun, lun
+  openr, lun, 'test.dat'
+  binread, lun, a
+  binread, lun, b
+  free_lun, lun
+  help, a, b
+#+END_SRC
+**** reading binary data via an associated variable
+
+#+BEGIN_SRC idl
+  file = filepath('people.dat', subdir='examples/data')
+  openr, lun, file, /get_lun
+  chunk = bytarr(192, 192)
+  image = assoc(lun, chunk)
+  tvscl, image[0]
+  tvscl, image[1]
+  free_lun, lun
+#+END_SRC
+
+* Basic programming
+** defining and compiling programs
+*** procedures
+
+- A main procedure
+
+  #+BEGIN_SRC idl
+    print, 'Hello world'
+    END
+  #+END_SRC
+
+- A procedure with no arguments:
+
+  #+BEGIN_SRC idl
+    PRO HELLO
+      print, 'hello world'
+    END
+  #+END_SRC
+
+- A procedure with three parameters
+
+  #+BEGIN_SRC idl
+    PRO READ_IMAGE, IMAGE, DATA, TIME
+      ;; statements...
+    END
+  #+END_SRC
+
+- A procedure with three parameters and two optional keywords
+
+  #+BEGIN_SRC idl
+    PRO PRINT_IMAGE, IMAGE, DATA, TIME, LANDSCAPE=LANDSCAPE, $
+                     COLOR=COLOR
+      ;; statements
+    END
+  #+END_SRC
+*** functions
+- A function with one parameter
+
+  #+BEGIN_SRC idl
+    FUNCTION F_TO_C, DEG_F
+      return, (deg_f - 32.0) * (5.0 / 9.0)
+    END
+  #+END_SRC
+
+- A function with three parameters and two optional keywords
+
+  #+BEGIN_SRC idl
+    FUNCTION GET_BOUNDS, IMAGE, LAT, LON, POLAR= POLAR, $
+                         NORMAL=NORMAL
+      ;; statements...
+    END
+  #+END_SRC
+
+*** naming source files
+
+The standard format for naming an IDL source file is the procedure
+or function name followed by a . pro extension (e.g., imdisp.pro).
+
+*** manual compilation
+
+#+BEGIN_SRC idl
+  .compile hello.pro
+  .compile hello.pro imdisp.pro sds_read.pro
+#+END_SRC
+
+It is also possible to manually compile procedures of functions with the
+executive commands /.run/ or /.rnew/. If the source file named in the
+/.run/ or /.rnew/ command is a "main program", the "main program" will
+be executed.
+
+*** automatic compilation
+
+IDL automatically compiles procedures and functions as they are needed at
+runtime.
+*** returning to the main level after an error
+
+If an error in an IDL program causes execution to stop, by default, IDL
+halts inside the procedure that causes the error.
+
+for example
+
+#+BEGIN_SRC idl
+  FUNCTION SUM, ARG1, ARG2
+    return, arg1 + arg2
+  END
+
+  PRO HELLO, A , B
+    print, 'Hello world'
+    print, 'The sum of A and B is ', sum(a, b)
+  END
+#+END_SRC
+
+To compile an run the program
+
+#+BEGIN_SRC idl
+  .compile hello
+  a = 3
+  b = 15
+  hello, a, b
+#+END_SRC
+
+However, if the program is called when an argument is undefined
+
+#+BEGIN_SRC idl
+  hello, a, bbb
+#+END_SRC
+
+The error message shows that IDL halted inside the /product/ function at
+line 2 of the source file (hello.pro).
+
+Because execution halted inside the /product/ function, only the variables
+defined in this function are now available at the command line.
+
+#+BEGIN_SRC idl
+  help, arg1
+  help, a
+#+END_SRC
+
+In addition, you will see warning messages if you try recompiling the
+source file after an execution halt.
+
+After examining any variables in the failed function or procedure, use the
+/retall/ command to return to the amin level.
+
+#+BEGIN_SRC idl
+  retall
+  help, a
+  help, arg1
+#+END_SRC
+** control statements
+*** IDL control statements
+#+CAPTION: IDL control statements
+#+ATTR_LATEX: :placement [H]
+#+ATTR_HTML: :border 2 :rules all :frame border :class center
+|-----------+--------------------------------------------------------------|
+| Statement | Purpose                                                      |
+|-----------+--------------------------------------------------------------|
+| if        | If a condition is true, execute statement(s)                 |
+| case      | Select one case to execute from a list of cases              |
+| for       | For a specified number of times, execute a statement loop    |
+| while     | While a condition is true, execute a statement loop          |
+| repeat    | Repeat a statement loop until a condition is true            |
+| return    | Return control to the calling function or procedure          |
+| goto      | Go to a label                                                |
+| switch    | Branch to a case in a list of cases                          |
+| break     | Break out of a loop, /case/ statement, or /switch/ statement |
+| continue  | Continue execution on the next iteration of a loop           |
+|-----------+--------------------------------------------------------------|
+*** /if/ statement
+
+#+BEGIN_SRC idl
+  if condition then statement
+#+END_SRC
+
+#+BEGIN_SRC idl
+  if condition then begin
+    statement(s)
+  endif
+#+END_SRC
+
+#+BEGIN_SRC idl
+  if condition then statement else statement
+#+END_SRC
+
+#+BEGIN_SRC idl
+  if condition then begin
+     statement(s)
+  endif else begin
+     statement(s)
+  endelse
+#+END_SRC
+
+In all forms , /condition/ is a scalar expression that evaluates to true
+or false.
+*** /case/ statement
+
+#+BEGIN_SRC idl
+  case expression of
+    exp1:
+    exp2: statement
+    exp3: begin
+       statement(s)
+    end
+    else: statement
+  endcase
+#+END_SRC
+
+Here, /expression/, /exp1/, /exp2/ and /exp3/ are scalar expression.
+
+The /case/ statement can also be used in conjunction with relational and
+Boolean operators.
+
+#+BEGIN_SRC idl
+  case 1 of
+    cond1: statement
+    cond2: begin
+       statement(s)
+    end
+    else: statement
+  endcase
+#+END_SRC
+
+Here /cond1/ and /cond2/ are expressions containing relational operators
+that evaluate to either true or false, such as ( x gt 100).
+*** /for/ statement
+
+#+BEGIN_SRC idl
+  for i = v1, v2 do statement
+#+END_SRC
+
+#+BEGIN_SRC idl
+  for i = v1, v2, inc do statement
+#+END_SRC
+
+#+BEGIN_SRC idl
+  for i = v1, v2, inc do begin
+    statements(s)
+  endfor
+#+END_SRC
+
+If the default /int/ type is used for the loop start variable, large loop
+end values can cause problems
+
+#+BEGIN_SRC idl
+  for i = 0, 40000, 1000 do print, i
+#+END_SRC
+
+The loop end value of 40,000 is automatically interpreted as a /long/ since
+it is greater than 32,767, and therefore a mismatch exists between the
+types of the loop start and end values. For this reason, /long/ loop
+control variables are recommended.
+
+#+BEGIN_SRC idl
+  for i = 0L, 40000L, 1000L do print, i
+#+END_SRC
+
+Floating-point loop variables are permitted, but are not recommended. If
+you need to create floating-point variables inside a loop, the preferred
+approach is to create a float variable from the loop control variable.
+
+#+BEGIN_SRC idl
+  for i = 1L, 5L, 1L do print, 0.1 * float(i)
+#+END_SRC
+*** /while/ statement
+
+#+BEGIN_SRC idl
+  while condition do statement
+#+END_SRC
+
+#+BEGIN_SRC idl
+  while condition do begin
+    statement(s)
+  endwhile
+#+END_SRC
+*** /repeat/ statement
+
+#+BEGIN_SRC idl
+  repeat statemnt until condition
+#+END_SRC
+
+#+BEGIN_SRC idl
+  repeat begin
+    statement(s)
+  endrep until condition
+#+END_SRC
+*** /return/ statement
+
+In general, you should *try* to limit each function to one return
+statement.
+*** /goto/ statement
+
+Jump to a specific location
+
+#+BEGIN_SRC idl
+  goto, label
+#+END_SRC
+
+The destination is specified by /label/
+
+#+BEGIN_SRC idl
+  label:
+#+END_SRC
+*** /switch/ statement
+
+#+BEGIN_SRC idl
+  switch expression of
+    exp1:
+    exp2: statement
+    exp3: begin
+       statement(s)
+    end
+    else: statement
+  endswitch
+#+END_SRC
+
+Here, /expression/, /exp1/, /exp2/ and /exp3/ are scalar expressions.
+*** /break/ statement
+
+The break statement causes an immediate exit from a /for/, /while/ , or
+/repeat/ loop, or a case or switch statement. Control is transferred to
+the next statement after the end of the loop, or an immediate exit from a
+case or switch statement.
+*** /continue/ statement
+
+The continue statement causes the next iteration of a for, while, or
+repeat loop to be executed. Any statements remaining in the current
+loop iteration are skipped.
+** arguments and keywords
+*** argument passing
+
+#+CAPTION: Arguments passed by reference versus value
+#+ATTR_LATEX: :placement [H]
+#+ATTR_HTML: :border 2 :rules all :frame border :class center
+|---------------------+--------------------|
+| Passed by reference | Passed by value    |
+|---------------------+--------------------|
+| Scalars             | Constants          |
+| Arrays              | Indexed subarrays  |
+| Structures          | Structure elements |
+| Undefined variables | System variables   |
+|                     | Expressions        |
+|---------------------+--------------------|
+*** extra keywords
+
+When keywords are passed to a procedure or function, it is sometimes
+necessary to pass these keywords to another routine from within the
+called routine.
+
+#+BEGIN_SRC idl
+  PRO EPLOT, X, Y, NAME=NAME, _EXTRA=EXTRA_KEYWORDS
+
+    ;; Check arguments
+    if (n_params() ne 2) then $
+       message, 'Usage: EPLOT, X, Y'
+    if (n_elements(x) eq 0) then $
+       message, 'Argument X is undefined'
+    if (n_elements(y) eq 0) then $
+       message, 'Argument Y is undefined'
+    if (n_elements(name) eq 0) then name = 'Faxiang Zheng'
+
+    ;; Plot the data
+    plot, x, y, _extra=extra_keywords
+
+    ;; Print name and date on plot
+    date = systime()
+    xyouts, 0.0, 0.0, name, align=0.0, /normal
+    xyouts, 1.0, 0.0, date, align=1.0, /normal
+
+  END
+#+END_SRC
+
+then in your IDL shell,
+
+#+BEGIN_SRC idl
+  x = findgen(200) * 0.1
+  eplot, x, sin(x), xrange=[0, 15], $
+         xtitle='X', ytitle='SIN(X)'
+#+END_SRC
+*** extra keywords precedence
+
+A keyword passed to a procedure or function via the extra keyword
+method takes precedence when a keyword with the same name is passed
+in the argument list.
+
+#+BEGIN_SRC idl
+  PRO KPLOT, _EXTRA=EXTRA_KEYWORDS
+
+    plot, indgen(10), psym=2, _extra=extra_keywords
+
+  END
+#+END_SRC
+
+When this procedure is called with no keywords, the /plot/ procedure uses
+plot symbol 2. If the /psym/ keyword is passed when /kplot/ is called, the
+/plot/ procedure uses the value of /psym/ passed via the extra keyword
+structure and ignore the explicit setting of /psym=2/ in the argument
+list.
+
+#+BEGIN_SRC idl
+  kplot
+  kplot, psym=4
+#+END_SRC
+
+If you wish to use a keyword inside a procedure or function that would
+otherwise be passed via the extra keyword method, you must include the
+keyword in the procedure or function definition.
+
+#+BEGIN_SRC idl
+  PRO KPLOT, PSYM=PSYM, _EXTRA=EXTRA_KEYWORDS
+
+    if (n_elements(psym) eq 0) then psym = 2
+    print, 'PSYM = ', psym
+    plot, indgen(10), psym=psym, _extra=extra_keywords
+
+  END
+#+END_SRC
+*** extra keyword passing
+
+If the /_ref_extra/ keyword is used instead of /_extra/ in the procedure
+or function definition, then the keywords are passed by reference and
+therefore can be modified by the routine to which they are passed.
+
+#+BEGIN_SRC idl
+  FUNCTION SQUARE, ARG, POSITIVE=POSITIVE
+    result = arg ^ 2
+    if (arg gt 0) then positive = 1 else positive = 0
+    return, result
+  END
+
+  PRO TEST_VAL, INPUT, OUTPUT, _EXTRA=EXTRA_KEYWORDS
+    output = square(input, _extra=extra_keywords)
+  END
+
+  PRO TEST_REF, INPUT, OUTPUT, _REF_EXTRA=EXTRA_KEYWORDS
+    output = square(input, _extra=extra_keywords)
+  END
+#+END_SRC
+
+
+#+BEGIN_SRC idl
+  .compile test_extra
+  test_val, 2.0, output, positive=pos_flag
+  help, pos_flag
+
+  test_ref, 2.0, output, positive=pos_flag
+  help, pos_flag
+#+END_SRC
+** checking parameters and keywords
+*** routines
+#+CAPTION: Routines for checking arguments
+#+ATTR_LATEX: :placement [H]
+#+ATTR_HTML: :border 2 :rules all :frame border :class center
+|               | <50>                                               |
+|---------------+----------------------------------------------------|
+| Name          | Purpose                                            |
+|---------------+----------------------------------------------------|
+| n_params()    | \tabincell{l}{ Returns number of parameters passed\\ (not including keywords)} |
+| n_elements()  | \tabincell{l}{ Returns number of elements in a variable\\ (zero means variable is undefined)} |
+| size()        | \tabincell{l}{ Returns size and type information about a variable} |
+| arg_present() | \tabincell{l}{ Returns true if an argument was present and was\\ passed by reference} |
+| message       | Print a message and halts execution                |
+|---------------+----------------------------------------------------|
+*** checking input parameters and keywords
+
+Consider a hypothetical plotting procedure named /myplot.pro/, which is
+defined as follows
+
+#+BEGIN_SRC idl
+  MYPLOT, X, Y, POSITION=POSITION
+#+END_SRC
+
+The parameters /x/ and /y/ are one-dimensional vectors. Both parameters
+are required, and they must be the same size. The /position/ keyword must
+be one-dimensional vector with four elements if supplied; otherwise the
+default value is [0.0, 0.0, 1.0, 1.0]. The following checks are
+appropriate for this routine.
+
+1. Was the correct number of input parameters passed?
+
+   #+BEGIN_SRC idl
+     if (n_params() ne 2) then $
+        message, 'Usage: MYPLOT, X, Y'
+   #+END_SRC
+
+2. Is each input parameter defined?
+
+   #+BEGIN_SRC idl
+     if (n_elements(x) eq 0) then $
+        message, 'X is undefined'
+     if (n_elements(y) eq 0) then $
+        message, 'Y is undefined'
+   #+END_SRC
+
+3. Does each input parameter have the correct number of dimensions?
+
+   #+BEGIN_SRC idl
+     if (size(x, /n_dimensions) ne 1) then $
+        message, 'X must be a 1D array'
+     if (size(y, /n_dimensions) ne 1) then $
+        message, 'Y must be a 1D array'
+   #+END_SRC
+
+4. Are the input parameters the same size?
+
+   #+BEGIN_SRC idl
+     if (n_elements(x) ne n_elements(y)) then $
+        message, 'X and Y must be same size'
+   #+END_SRC
+
+5. If a keyword was not passed, is a default value set?
+
+   #+BEGIN_SRC idl
+     if (n_elements(position) eq 0) then $
+        position = [0.0, 0.0, 1.0, 1.0]
+   #+END_SRC
+
+6. If a keyword was passed, does it have the correct number of elements?
+
+   #+BEGIN_SRC idl
+     if (n_elements(position) ne 4) then $
+        message, 'POSITION must have 4 elements'
+   #+END_SRC
+*** don't modify input parameters
+
+You should avoid modifying input parameters.
+*** checking boolean keywords
+
+Boolean keywords are checked using the /keyword_set/ function, which
+returns true if the argument is defined, *and* is a nonzero scalar, *or*
+an array of any size, type, or value. For example, the /myplot/ procedure
+shown previously could an /erase/ keyword which causes the screen to be
+erased if it is set to true.
+
+#+BEGIN_SRC idl
+  if keyword_set(erase) then erase
+#+END_SRC
+
+or
+
+#+BEGIN_SRC idl
+  erase = keyword_set(erase)
+  if (erase) then erase
+#+END_SRC
+
+In this case, if erase is a nonzero scalar, or an array of any size, type,
+or value, it will be converted to a scalar int equal to 1, which will be
+returned to the caller.
+
+Another case where you may wish to use a Boolean keyword within a
+procedure or function is to pass it to another routine that accepts a
+Boolean keyword with the same name.
+
+#+BEGIN_SRC idl
+  plot, x, y, erase=keyword_set(erase)
+#+END_SRC
+*** checking output parameters and keywords
+
+Output arguments must be passed by reference if they are to be created
+or modified within a called routine and returned to the caller. The
+/arg_present/ function is used to check for arguments that can be modified
+inside a called routine. If a parameter or keyword was present in the
+calling sequence, and the parameter or keyword was passed by reference,
+/arg_present/ returns true.
+
+#+BEGIN_SRC idl
+  if arg_present(xrange) then $
+     xrange = [min(x) - 1.0, max(x) + 1.0]
+#+END_SRC
+
+In the case of mandatory output parameters, /arg_present/ allows you
+to detect parameters that cannot be modified.
+
+#+BEGIN_SRC idl
+  if (arg_present(slope) ne 1) then $
+     message, 'SLOPE cannot be modified'
+#+END_SRC
+** scripts
+
+The simplest IDL program is writing multiple command lines to a file,
+just the same as the commands used in the interactive IDL shell. For
+example, put the following commands into /hello.pro/
+
+#+BEGIN_SRC idl
+  print, 'hello world'
+  print, 'I love IDL'
+  for index = 0, 10 do print, index
+#+END_SRC
+
+Then, you can call the command in the file by
+
+#+BEGIN_SRC idl
+  @hello
+#+END_SRC
+
+in your IDL shell.
+
+However, the following multiple lines for loop is not permitted in a script
+because it contains a statement block
+
+#+BEGIN_SRC idl
+  for index = 0, 10 do begin
+    print, index
+  endfor
+#+END_SRC
+
+It is possible to bypass this behavior by including multiple statements on
+one line separated by the & character
+
+#+BEGIN_SRC idl
+  for index = 0, 10 do begin & print, index & endfor
+#+END_SRC
+
+This method of defining a loop should only be used in a script or on the
+command line.
+
+** include files
+
+An include file contains a sequence of IDL statements that are inserted in
+a procedure or function at compile time. Include files may contain any
+statement that is legal in a procedure or function, including multiline
+statement blocks. For example, the following physical constants could be
+contained in an include file named /fundamental_constants.inc/
+
+#+BEGIN_SRC idl
+  planck_constant = 6.6260755d-34     ; Joule second
+  light_speed = 2.9979246d+8          ; meters per second
+  boltzmann_constant = 1.380658d-23   ; Joules per Kelvin
+  rad_c1 = 2.0d0 * planck_constant * light_speed^2
+  rad_c2 = (planck_constant * light_speed) / boltzmann_constant
+#+END_SRC
+
+To include the file in a function named /planck.pro/ that computes
+monochromatic Planck radiance given wavenumber and temperature
+
+#+BEGIN_SRC idl
+  FUNCTION PLANCK, V, T
+    @fundamental_constants.inc
+    vs = 10d2 * v
+    return, vs^3 * ((rad_c1 * 10D5) / $
+                    (exp(rad_c2 * (vs / t)) - 1.0D0))
+  END
+#+END_SRC
+
+The include file is silently inserted into the function at compile time
+** journal
+
+A journal of an IDL session can be created by calling the /journal/
+procedure
+
+#+BEGIN_SRC idl
+  journal
+#+END_SRC
+
+The default journal file /idlsave.pro/ is created in the current directory.
+The /journal/ procedure accepts one optional parameter specified the path
+and name of the journal file.
+
+#+BEGIN_SRC idl
+  journal, 'mydemo.pro'
+#+END_SRC
+
+Journal ends when /journal/ is called without any arguments, or when the IDL
+session ends. To replay a journal file, simply use the 'at' character
+
+#+BEGIN_SRC idl
+  @mydemo
+#+END_SRC
+** global variables
+*** read-only system variables
+#+CAPTION: Commonly used read-only system variables
+#+ATTR_LATEX: :placement [H]
+#+ATTR_HTML: :border 2 :rules all :frame border :class center
+|                    | <45>                                          |
+|--------------------+-----------------------------------------------|
+| System variable    | Meaning                                       |
+|--------------------+-----------------------------------------------|
+| !dtor              | Degrees to radians conversion factor          |
+| !radeg             | Radians to degrees convolution factor         |
+| !pi                | \pi{} (single precision)                      |
+| !dpi               | \pi{} (double precision)                      |
+| !version.release   | IDL version number (string)                   |
+| !version.os_family | Platform identifier                           |
+| !d.flags           | \tabincell{l}{ Bitmask containing information about the\\ current graphics device} |
+| !d.n_colors        | Number of possible colors in palette          |
+| !d.name            | Name of the current graphics device           |
+| !d.table_size      | Size of current graphics window               |
+| !d.window          | Index of current graphics window              |
+| !d.x_vsize         | Viewable horizontal size of current graphics device (in pixels) |
+| !d.y_vsize         | Viewable vertical size of current graphics device (in pixels) |
+| !x.window          | Horizontal coordinates of current plot (normalized units) |
+| !y.window          | Vertical coordinates of current plot (normalized units) |
+|--------------------+-----------------------------------------------|
+*** writable system variables
+#+CAPTION: Commonly used writable system variables
+#+ATTR_LATEX: :placement [H]
+#+ATTR_HTML: :border 2 :rules all :frame border :class center
+|------------------+------------------------------------------------------|
+| System variables | Meaning                                              |
+|------------------+------------------------------------------------------|
+| !p.multi         | Configures multipanel plots                          |
+| !p.font          | Selects default font for plotted characters          |
+| !order           | Controls image display order (bottom up or top down) |
+| !path            | The current search path for procedures and functions |
+| !except          | Controls math error behavior                         |
+|------------------+------------------------------------------------------|
+*** user-defined system variables
+
+#+BEGIN_SRC idl
+  defsysv, 'plot_info', 10.0
+  help, !plot_info
+#+END_SRC
+
+By default, system variables created by /defsysv/ are writable, but their
+type and size cannot be changed
+
+#+BEGIN_SRC idl
+  !plot_info = -32.0
+  help, !plot_info
+#+END_SRC
+
+However, read-only system variables can be created by adding an optional
+nonzero argument to /defsysv/, as shown in the following example, where
+the speed of light is defined in meters per second
+
+#+BEGIN_SRC idl
+  defsysv, '!speed_of_light', 2.9979246d+8, 1
+  help, !speed_of_light
+  !speed_of_light = 123.45
+#+END_SRC
+
+To remove user-defined system variables, you can either exit IDL and start
+a new session, or issue the /.reset_session/ executive command at the IDL
+command line to reset the session.
+
+#+BEGIN_SRC idl
+  .reset_session
+  help, !plot_info
+#+END_SRC
+
+To check for the existence of a system variable, the /exist/ keyword is
+used in conjunction with /defsysv/ to return a logical variable
+
+#+BEGIN_SRC idl
+  defsysv, '!plot_info', 20.0
+  defsysv, '!plot_info', exist=exist
+  help, exist
+  defsysv, '!plot_nothing', exist=exist
+  help, exist
+#+END_SRC
+** error handling
+*** /on_error/
+
+When IDL encounters a fatal error in a procedure or function, the default
+behavior is to stop execution in the routine that cause the error. This
+default behavior may be modified by calling the /on_error/ procedure,
+which accepts a single scalar argument specify the default error
+behavior.
+#+CAPTION: Arguments values for /on_error/
+#+ATTR_LATEX: :placement [H]
+#+ATTR_HTML: :border 2 :rules all :frame border :class center
+|-------+----------------------------------------------------------|
+| Value | Behavior when error occurs                               |
+|-------+----------------------------------------------------------|
+|     0 | Stop the routine that cause the error (default)          |
+|     1 | Return to the main level                                 |
+|     2 | Return to the caller of the routine that cause the error |
+|     3 | Return to the routine that cause the error               |
+|-------+----------------------------------------------------------|
+*** intercepting errors
+
+If you wish to manually intercept error and provide your own error-
+handling code, the /catch/ procedure can be used.
+
+The call to ca tch establishes the error handler and creates the
+variable /error_status/ , which is set to zero. In the event of a
+subsequent error, /error_status/ is set to a nonzero error code.
+
+#+BEGIN_SRC idl
+  FUNCTION NCDF_ISNCDF, FILE
+
+    ;; Check arguments
+    if (n_params() ne 1) then $
+       message, 'Usage: RESULT = NCDF_ISNCDF(FILE)'
+    if (n_elements(file) eq 0) then $
+       message, 'Argument FILE is undefined'
+
+    ;; Establish error handler
+    catch, error_status
+    if (error_status ne 0) then return, 0
+
+    ;; Attempt to open the file
+    ncid = ncdf_open(file)
+
+    ;; Close the file and return to caller
+    ncdf_close, ncid
+    return, 1
+
+  END
+#+END_SRC
+
+If you wish to obtain further information about an error that was
+handled by /catch/
+
+#+BEGIN_SRC idl
+  if (error_status ne 0) then begin
+    help, /last_message, output=errtext
+    print, errtext[0]
+    return, 0
+  endif
+#+END_SRC
+*** math errors
+
+IDL is able to detect math errors such as overflow, underflow, and
+divide-by-zero.In these cases, IDL substitutes the special
+floating-point values /NaN/ (not a number) or /Inf/ (infinity) for the
+value that caused the error
+
+#+BEGIN_SRC idl
+  print, sqrt(-1.0)
+  print, 1.0/0.0
+#+END_SRC
+
+The default behavior is to continue execution and print a warning
+message when control is returned to the command line. To change the
+default behavior, you can change the system variable /!except/,
+#+CAPTION: Values for system variable !except
+#+ATTR_LATEX: :placement [H]
+#+ATTR_HTML: :border 2 :rules all :frame border :class center
+|-------+--------------------------------------------------------------------|
+| Value | Behavior when math error occurs                                    |
+|-------+--------------------------------------------------------------------|
+|     0 | Do not print a warning                                             |
+|     1 | Print a warning when control returns to the command line (default) |
+|     2 | Print a warning when the exception occors                          |
+|-------+--------------------------------------------------------------------|
+
+If you wish to check the math error status without printing a warning
+message, set /!except/ to zero and call the /check_math/ function
+
+The /finite/ function may be used to check for the presence of /NaN/
+and /Inf/.
+
+#+BEGIN_SRC idl
+  arr = [0.0, 1.0, sqrt(-1.0), 4.0, 1.0 / 0.0]
+  print, finite(arr)
+#+END_SRC
+
+To locate non-finite values and set them to a missing value, use the
+/finite/ function in conjunction with /where/ to return the indices of
+the non-finite numbers
+
+#+BEGIN_SRC idl
+  missing = -999.9
+  index = where(finite(arr) eq 0, count)
+  if (count gt 0) then arr[index] = missing
+  print, arr
+#+END_SRC
+
+** efficient programming
+*** conserving memory
+
+The /temporary/ function returns a temporary copy of a variable, and
+sets the original variable to “undefined”. This function can be used
+to conserve memory when performing operations on large arrays, as it
+avoids making a new copy of results that are only temporary. In
+general, the /temporary/ routine can be used to advantage whenever a
+variable containing an array on the left hand side of an assignment
+statement is also referenced on the right hand side.
+
+#+BEGIN_SRC idl
+  ;; generate an array
+  a = dist(500, 500)
+  ;; normal way, requires more space
+  a = a + 1.0
+  ;; better way, requires no additional space
+  a = temporary(a) + 1.0
+#+END_SRC
+
+If multiple operations are performed on the array, they can be
+performed one step at a time to conserve memory
+
+#+BEGIN_SRC idl
+  ;; normal way
+  a = a * (1.0 / max(a))
+  ;; better way
+  maxval = max(a)
+  a = temporary(a) / maxval
+#+END_SRC
+
+When an array is replaced by a sub-array
+
+#+BEGIN_SRC idl
+  ;; generate an array
+  a = dist(256)
+  ;; normal way
+  a = a[0:63, 0:63]
+  ;; better way
+  a = (temporary(a))[0:63, 0:63]
+#+END_SRC
+*** using efficient methods
+
+If you want to find the sum of all elements greater than 100.0 in a
+frequency distribution array with 500 columns and 1,000 rows.
+
+#+BEGIN_SRC idl
+  ;; generate an array
+  a = dist(500, 1000)
+  ;; normal way
+  sum = 0.0
+  for i = 0L, n_elements(a) - 1L do $
+     if (a[i] gt 100.0) then sum = sum + a[i]
+  ;; a better way
+  index = where(a gt 100.0, count)
+  if (count gt 0) then sum = total(a[index])
+  ;; another better way
+  sum = total(a * (a gt 100.0))
+#+END_SRC
+
+To time an operation
+
+#+BEGIN_SRC idl
+  ;; measure time
+  t0 = systime(1) & sum = total(a * (a gt 100.0)) & $
+     t1 = systime(1)
+  print, t1 - t0
+#+END_SRC
+
+* Window
+** create window
+
+#+BEGIN_SRC idl
+  window
+  window, 10
+  window, /free
+#+END_SRC
+
+** current window number
+
+#+BEGIN_SRC idl
+  print, !D.Window
+#+END_SRC
+
+** set specific window to current
+
+#+BEGIN_SRC idl
+  wset, 10
+#+END_SRC
+
+** delete  windows
+*** delete a window
+
+#+BEGIN_SRC idl
+  wdelete, 10
+#+END_SRC
+
+*** delete all windows
+
+#+BEGIN_SRC idl
+  WHILE !D.Window NE -1 DO Wdelete, !DWindow
+#+END_SRC
+
+** window size and position
+
+#+BEGIN_SRC idl
+  window, 1, xsize=200, ysize=300, xpos=75, ypos=150
+#+END_SRC
+
+** show window
+
+#+BEGIN_SRC idl
+  wshow, 1
+#+END_SRC
+
+** window title
+
+#+BEGIN_SRC idl
+  window, title='fuck'
+#+END_SRC
+
+** erase current window
+
+#+BEGIN_SRC idl
+  erase
+#+END_SRC
+
+** device independent graphics windows
+
+#+BEGIN_SRC idl
+  cgdisplay, 500, 400
+  cgdisplay, 500, 400, wid=2
+  cgdisplay, 500, 400, /free
+#+END_SRC
+
+** resizable windows
+
+#+BEGIN_SRC idl
+  cgwindow, 'plot', findgen(11)
+#+END_SRC
+
+#+BEGIN_SRC idl
+  loadct, 33, rgb_table=palette
+  cgPlot, cgdemodata(1), layout=[2, 2, 3], color='red', /window
+  cgContour, cgdemodata(2), nlevels=12, layout=[2, 2, 1], $
+             xstyle=1, ystyle=1, color='dodger blue', /addcmd
+  cgSurf, cgDemoData(2), /elevation, layout=[2, 2, 4], $
+          palette=palette, /addcmd
+  cgImage, cgDemoData(19), multimargin=4, /axes, $
+          layout=[2, 2, 2], /addcmd
+#+END_SRC
+
+#+CAPTION: Resizable Window
+#+ATTR_LATEX: :placement [H]
+[[file:img/resizablewindow.png]]
+
+* Color
+** information about your graphic device
+
+#+BEGIN_SRC idl
+  window
+  device,get_visual_name=theVisual,$
+      get_visual_depth=theDepth
+  print,theVisual,theDepth
+#+END_SRC
+
+Normally, you will get 'TrueColor' and '24'. *If not*, add following
+content to your ~/.Xdefaults
+
+#+BEGIN_SRC sh
+  idl.gr_visual: TrueColor
+  idl.gr_depth: 24
+#+END_SRC
+
+Or,add following command to your IDL startup file
+
+#+BEGIN_SRC idl
+  Device,TrueColor=24
+#+END_SRC
+
+** color models
+
+There are two color modes in IDL, i.e., /decomposed color/ (default) and
+ /indexed color/
+
+#+BEGIN_SRC idl
+  Device, Decomposed=1 ; Selects Decomposed Color Model.
+  Device, Decomposed=0 ; Selects Indexed Color Model.
+#+END_SRC
+
+Every color in IDL is represented, ultimately, as a three-element byte
+vector of red, green, and blue values, in which each value can vary
+between 0 and 255. We call this vector a /color triple/. Totally, we
+can get 256*256*256=16777216 kinds of different color.This is also
+known as /true color/.
+
+In /decomposed/ color model,
+
+#+BEGIN_SRC idl
+  device,decomposed=1
+  clr=[R,G,B]
+  DecomposedColor=clr[0]+clr[1]*2L^8+clr[2]*2L^16
+#+END_SRC
+
+#+CAPTION: decomposed color, /credit: David W. Fanning/
+#+ATTR_LaTeX: :placement [H]
+[[file:img/color_decomposed.png]]
+
+Things differ in /indexed/ color model.Suppose we load a  at color
+index 100 with the /TVLCT/ command, like this
+
+#+BEGIN_SRC idl
+  device,decomposed=0
+  TVLCT,R,G,B,100
+  IndexColor=100
+#+END_SRC
+
+#+CAPTION: indexed color, /credit: David W. Fanning/
+#+ATTR_LaTeX: :placement [H]
+[[file:img/color_index.png]]
+
+Once a color index is loaded, the color palette is limited to 256, but
+it is enough in most of cases.
+
+** specify a color by name
+
+use /cgColor/ from the /Coyote Library/, or simply use /PickColorName/
+program
+
+** load color table indices
+
+*** /TvLCT/
+
+#+BEGIN_SRC idl
+  TvLCT,red,green,blue,position
+#+END_SRC
+
+use /CIndex/ command to see the result
+
+*** /LoadCT/
+
+used to load standard color tables come with IDL
+
+*** /XloadCT/
+
+*** /Xpalette/
+* Line plot
+** simple curve
+
+#+BEGIN_SRC idl
+  curve=cgdemodata(1)
+  time = (findgen(100) + 1) * 6.0 / 100
+  plot,time,curve,xtitle='time axis',ytitle='signal strength',$
+       title='experiment 35M',charsize=1.5, color=cgcolor('black'), $
+       background=cgcolor('white')
+#+END_SRC
+
+#+CAPTION: simple plot
+#+ATTR_LaTeX: :placement [H]
+[[file:img/time_series_plot.png]]
+
+set defualt char size
+
+#+BEGIN_SRC idl
+  !P.CharSize=1.5
+#+END_SRC
+** OPlot
+
+plot multiple curves on a single window
+
+#+BEGIN_SRC idl
+  plot, curve, color=cgcolor('black'), background=cgcolor('white')
+  oplot, curve/2.0, linestyle=1, color=cgcolor('black')
+  oplot, curve/5.0, linestyle=2, color=cgcolor('black')
+#+END_SRC
+
+#+CAPTION: oplot
+#+ATTR_LATEX: :placement [H]
+[[file:img/oplot_linestyle.png]]
+
+we can create second y axis by /save/ keyword
+
+#+BEGIN_SRC idl
+  plot, curve, ystyle=8, ytitle='solid line', $
+        position=[0.13,0.15,0.85,0.95], color=cgcolor('black'), $
+        background=cgcolor('white'), charsize=1.5
+  axis, yaxis=1, yrange=[0,max(curve*5+1)], /save, $
+        ytitle='dashed line', color=cgcolor('black'), charsize=1.5
+  oplot, curve*5, linestyle=2, color=cgcolor('black')
+#+END_SRC
+
+#+CAPTION: oplot two y axis
+#+ATTR_LATEX: :placement [H]
+[[file:img/oplot_two_y_axis.png]]
+
+** modify your plot
+*** thick
+
+A floating-point value between 1.0 (the default) and 10.0
+*** line style
+
+#+CAPTION: LineStyle
+#+ATTR_LATEX: :placement [H]
+#+ATTR_HTML: :border 2 :rules all :frame border :class center
+|--------------------+------------------|
+| Value of linestyle | LineStyle        |
+|--------------------+------------------|
+|                  0 | solid line       |
+|                  1 | dotted           |
+|                  2 | dashed           |
+|                  3 | dash dot         |
+|                  4 | dash dot dot dot |
+|                  5 | long dash        |
+|                  6 | no line draw     |
+|--------------------+------------------|
+*** symbol
+
+#+CAPTION: Psym
+#+ATTR_LATEX: :placement [H]
+#+ATTR_HTML: :border 2 :rules all :frame border :class center
+|---------------+----------------------------|
+| Value of Psym | symbol                     |
+|---------------+----------------------------|
+|             0 | no symbol                  |
+|             1 | plus sign                  |
+|             2 | asterisk                   |
+|             3 | period                     |
+|             4 | diamond                    |
+|             5 | triangle                   |
+|             6 | square                     |
+|             7 | X                          |
+|             8 | UserSym                    |
+|             9 | unused                     |
+|            10 | ladder                     |
+|         -Psym | symbols connected by lines |
+|---------------+----------------------------|
+
+We can create our user symbol
+
+#+BEGIN_SRC idl
+  ;; define symbol
+  x = [0.0, 0.5, -0.8, 0.8, -0.5, 0.0]
+  y = [1.0, -0.8, 0.3, 0.3, -0.8, 1.0]
+  usersym, x, y, /fill
+  ;; plot
+  vector = randomu(seed, 10) * 10
+  plot, vector, color=cgcolor('black'), background=cgcolor('white'), $
+        xstyle=1
+  oplot, vector, color=cgcolor('red'), psym=8, $
+         symsize=4.0, noclip=1
+#+END_SRC
+
+#+CAPTION: plot user symbol
+#+ATTR_LaTeX: :placement [H]
+[[file:img/user_sym.png]]
+*** color
+
+#+BEGIN_SRC idl
+  vector = randomu(seed, 10) * 10
+  plot, vector, color=cgcolor('black'), background=cgcolor('yellow'), $
+        /nodata
+  oplot, vector, color=cgcolor('red')
+  oplot, vector, color=cgcolor('forest green'), $
+         psym=2, symsize=3.0
+#+END_SRC
+
+#+CAPTION: plot color
+#+ATTR_LaTeX: :placement [H]
+[[file:img/plot_color_background.png]]
+
+*** range
+
+#+BEGIN_SRC idl
+  plot, time, curve, xrange=[2,4], yrange=[-10,40]
+#+END_SRC
+
+*** [XYZ]Style
+
+#+CAPTION: [XYZ]Style
+#+ATTR_LATEX: :placement [H]
+#+ATTR_HTML: :border 2 :rules all :frame border :class center
+|---------------------+---------------------------|
+| value of [xyz]style | result                    |
+|---------------------+---------------------------|
+|                   1 | accurate axis range       |
+|                   2 | expanded axis range       |
+|                   4 | no axis                   |
+|                   8 | no fram                   |
+|                  16 | Y axis don't start from 0 |
+|---------------------+---------------------------|
+all are cumulative
+
+#+BEGIN_SRC idl
+  plot, time, curve, xstyle=9, ystyle=9, color=cgcolor('black'), $
+        background=cgcolor('white')
+#+END_SRC
+
+#+CAPTION: plot [xy]style
+#+ATTR_LaTeX: :placement [H]
+[[file:img/plot_xystyle.png]]
+
+*** grid
+
+when [xy]ticklen=1
+
+#+BEGIN_SRC idl
+  plot, time, curve, xstyle=9, ystyle=1, xticklen=1, xgridstyle=1,$
+        yticklen=1, ygridstyle=1, color=cgcolor('black'), $
+        background=cgcolor('white')
+#+END_SRC
+
+#+CAPTION: plot grid
+#+ATTR_LaTeX: :placement [H]
+[[file:img/plot_grid.png]]
+
+*** tick
+**** when /[xy]ticklen/ or /ticklen/ is smaller than 0
+
+#+BEGIN_SRC idl
+  plot, time, curve, xstyle=9, ystyle=9, xticklen=-0.03, $
+        yticklen=-0.02, color=cgcolor('black'), $
+        background=cgcolor('white')
+#+END_SRC
+
+#+CAPTION: tick1
+#+ATTR_LaTeX: :placement [H]
+[[file:img/plot_ticks.png]]
+
+**** use /[xy]ticks/ and /[xy]minor/
+
+the whole axis is divided into /[xy]ticks/ parts and each part will
+be divided into /[xy]minor/ parts
+
+#+BEGIN_SRC idl
+  plot, time, curve, xstyle=1, xticks=2, xminor=10, yticks=3, $
+        yminor=5, xticklen=-0.03, yticklen=-0.02, $
+        color=cgcolor('black'), background=cgcolor('white')
+#+END_SRC
+
+#+CAPTION: tick2
+#+ATTR_LaTeX: :placement [H]
+[[file:img/plot_ticks_divide.png]]
+
+*** axis labels
+**** no axis labels
+
+#+BEGIN_SRC idl
+  plot, time, vector, xtitle='Measurements', $
+        ytitle='Signal Strength', title='Experiment 1A', $
+        charsize=1.5, xcharsize=1.0, ycharsize=1.0, $
+        ystyle=1, xtickformat='(A1)', $
+        color=cgcolor('black'), background=cgcolor('white')
+#+END_SRC
+
+**** creating labels
+
+#+BEGIN_SRC idl
+  time = findgen(6) * 15.0 / 5.0
+  vector = randomu(seed, 6) * 100
+  ticklabels = ['1st', '2nd', '3rd', $
+               '4th', '5th', '6th']
+  plot, time, vector, xtitle='Measurements', $
+        ytitle='Signal Strength', title='Experiment 1A', $
+        charsize=1.5, xcharsize=1.0, ycharsize=1.0, $
+        xtickname=ticklabels, xticks=5, ystyle=1, $
+        color=cgcolor('black'), background=cgcolor('white')
+#+END_SRC
+
+#+caption: Axis Labels
+#+attr_latex: :placement [H]
+[[file:img/plot_axis_label.png]]
+**** label format
+
+#+BEGIN_SRC idl
+  plot, time, vector, xtitle='Elapsed Time', $
+        ytitle='Signal Strength', title='Experiment 1A', $
+        xtickformat='(F0.2)', ystyle=1, color=cgcolor('black'), $
+        background=cgcolor('white'), charsize=1.5, $
+        xcharsize=1.0, ycharsize=1.0
+#+END_SRC
+
+#+caption: Label Format
+#+attr_latex: :placement [H]
+[[file:img/plot_lable_format.png]]
+**** calendar dates as axis labels
+
+#+BEGIN_SRC idl
+  vector = randomu(seed, 6) * 10
+  time = timegen(n_elements(vector), $
+         start=julday(7, 1, 2016, 0, 0, 0), $
+         units='days')
+  void = label_date(date_format='%D %M %Y')
+  plot, time, vector, xtitle='Measurements', $
+        ytitle='Signal Strength', title='Experiment 1A', $
+        charsize=1.5, xcharsize=1.0, ycharsize=1.0, $
+        xtickformat='label_date', xticks=5, xstyle=1, $
+        color=cgcolor('black'), background=cgcolor('white'), $
+        position=[0.10, 0.15, 0.90, 0.85]
+#+END_SRC
+
+#+caption: Calendar Labels
+#+attr_latex: :placement [H]
+[[file:img/plot_calendar_labels.png]]
+
+** error bar plot
+
+#+BEGIN_SRC idl
+  data = Congrid(cgDemoData(1), 15)
+  seed = -5L
+  time = cgScaleVector(Findgen(N_Elements(data)), 1, 9)
+  high_yerror = RandomU(seed, N_Elements(data)) * 5 > 0.5
+  low_yerror = RandomU(seed, N_Elements(data)) * 4 > 0.25
+  high_xerror = RandomU(seed, N_Elements(data)) * 0.75 > 0.1
+  low_xerror = RandomU(seed, N_Elements(data))  * 0.75 > 0.1
+
+  xtitle = 'Time'
+  ytitle = 'Signal Strength'
+  title = 'Error Bar Plot'
+  position = [0.125, 0.125, 0.9, 0.925]
+  thick = (!D.Name EQ 'PS') ? 3 : 1
+
+  cgDisplay, 600, 500, Title='Errorbar Plot'
+
+  cgPlot, time, data, Color='red5', PSym=-16, SymColor='olive', $
+          SymSize=1.0, Thick=thick, Title=title, XTitle=xtitle, $
+          YTitle=ytitle, Position=position, YRange=[-5, 35], $
+          XRange=[0,10], YStyle=1, $
+          ERR_XLow=low_xerror, ERR_XHigh=high_xerror, $
+          ERR_YLow=low_yerror, ERR_YHigh=high_yerror, ERR_Color='blu5'
+#+END_SRC
+
+#+caption: Error Bar Plot
+#+attr_latex: :placement [H]
+[[file:img/errorbarplot.png]]
+** histogram line plot
+
+#+BEGIN_SRC idl
+  cgdisplay
+  image = cgdemodata(7)
+  h = histogram(image, binsize=5B, /nan, $
+                omin=omin, omax=omax)
+  x = scale_vector(findgen(n_elements(h)), omin, omax)
+  plot, x, h, psym=10, max_value=15000, xstyle=1, $
+        ytitle='Number of Pixels', xtitle='Pixel Value'
+#+END_SRC
+
+#+BEGIN_SRC idl
+  cghistoplot, cgdemodata(7), /fill, max_value=10000, $
+               ytitle='Number of Pixels', xtitle='Pixel Value'
+#+END_SRC
+
+#+caption: cgHistoplot
+#+attr_latex: :placement [H]
+[[file:img/cghistoplot.png]]
+
+#+BEGIN_SRC idl
+  data = randomu(5L, 200) * 20
+  !p.multi = [0, 2, 2]
+  cghistoplot, data, binsize=1.0
+  cghistoplot, data, binsize=1.0, /fill, $
+               polycolor=['charcoal', 'dodger blue']
+  cghistoplot, data, binsize=1.0, /line_fill, $
+               polycolor=['charcoal', 'dodger blue'], $
+               orientation=[45, -45]
+  cghistoplot, data, binsize=1.0, /fill, $
+               polycolor='sky blue', mininput=0
+  moredata = randomu(3L, 80) * 20
+  cghistoplot, moredata, binsize=1.0, /fill, $
+               polycolor='royal blue', /oplot, mininput=0
+  !p.multi = 0
+#+END_SRC
+
+#+caption: cgHistoplot Multiplot
+#+attr_latex: :placement
+[[file:img/cghistoplot_multi.png]]
+
+#+BEGIN_SRC idl
+  cghistoplot, cgdemodata(7), /fill, $
+               probcolorname='blu6', /oprobability
+#+END_SRC
+
+#+caption: cgHistoplot Cumulative Probability
+#+attr_latex: :placement [H]
+[[file:img/cghistoplot_prob.png]]
+** missing data
+
+#+BEGIN_SRC idl
+  data = float(cgdemodata(1))
+  data[40:49] = !values.f_nan
+  plot, data
+#+END_SRC
+** cgplot
+
+#+BEGIN_SRC idl
+  cgdisplay, 600, 300
+  cgplot, cgdemodata(1), psym=-16, color='red', $
+          symcolor='blue', axiscolor='dark green'
+#+END_SRC
+
+#+BEGIN_SRC idl
+  cgplot, cgdemodata(1), aspect=2/3.0, title='Aspect Plot'
+#+END_SRC
+
+#+BEGIN_SRC idl
+  data = cgdemodata(1)
+  time = scale_vector(findgen(101), 0, 6)
+  cgloadct, 33, /silent
+  cgplot, time, data, /nodata
+  cgplots, time, data, psym=-16, $
+           color=bytscl(data), symcolor=bytscl(data), $
+           symsize=scale_vector(data, 1.0, 2.5)
+#+END_SRC
+
+#+caption: cgPlot
+#+attr_latex: :placement [H]
+[[file:img/cgplot.png]]
+* Contour
+** basic contour
+
+#+BEGIN_SRC idl
+  peak = cgDemoData(2)
+  lat = FIndGen(41) * (24. / 40) + 24
+  lon = FindGen(41) * 50.0 / 40 - 122
+  Contour, peak, lon, lat, XTitle='Longitude', YTitle='Latitude', $
+           xstyle=1, ystyle=1, /follow, color=cgcolor('black'), $
+           background=cgcolor('white'), charsize=1.5, c_charsize=1.0
+#+END_SRC
+
+#+CAPTION: basic contour
+#+ATTR_LATEX: :placement [H]
+[[file:img/contour_1.png]]
+
+** levels
+
+The /NLevels/ keyword does not, generally, give you “N contouring
+levels” as claimed by the IDL documentation.
+
+#+BEGIN_SRC idl
+  nlevels = 12
+  step = (max(peak) - min(peak)) / nlevels
+  vals = indgen(nlevels) * step + min(peak)
+  contour, peak, lon, lat, xstyle=1, ystyle=1, /follow, levels=vals, $
+           color=cgcolor('black'), background=cgcolor('white'), $
+           charsize=1.5, c_charsize=1.0
+#+END_SRC
+
+#+CAPTION: contour levels
+#+ATTR_LATEX: :placement [H]
+[[file:img/contour_levels.png]]
+
+** labels
+
+#+BEGIN_SRC idl
+  threeLevels = [250, 750, 1200]
+  annotations = ['Low', 'Medium', 'High']
+  contour, peak, lon, lat, xstyle=1, ystyle=1, /follow, $
+           levels = threeLevels, C_annotation=annotations, $
+           color=cgcolor('black'), background=cgcolor('white'), $
+           charsize=1.5, c_charsize=1.5
+#+END_SRC
+
+#+CAPTION: contour labels
+#+ATTR_LATEX: :placement [H]
+[[file:img/contour_labels.png]]
+
+** modifying contour lines
+*** /downhill/
+
+We can put small tick marks in the downhill direction
+of the contour lines
+
+#+BEGIN_SRC idl
+  nlevels = 12
+  step = (max(peak) - min(peak)) / nlevels
+  vals = indgen(nlevels) * step + min(peak)
+  contour, peak, lon, lat, xstyle=1, ystyle=1, /follow, $
+           levels=vals, /downhill, color=cgcolor('black'), $
+           background=cgcolor('white'), charsize=1.5, $
+           c_charsize=1.0
+#+END_SRC
+
+#+CAPTION: contour downhill
+#+ATTR_LATEX: :placement [H]
+[[file:img/contour_downhill.png]]
+
+*** /c_linestyle/
+
+#+BEGIN_SRC idl
+  contour, peak, lon, lat, xstyle=1, ystyle=1, /follow, $
+           levels=vals, C_linestyle=[0,2], color=cgcolor('black'), $
+           background=cgcolor('white'), charsize=1.5, c_charsize=1.0
+#+END_SRC
+
+#+CAPTION: contour linestyle
+#+ATTR_LATEX: :placement [H]
+[[file:img/contour_linestyle.png]]
+
+*** /c_thick/
+
+#+BEGIN_SRC idl
+  contour, peak, lon, lat, xstyle=1, ystyle=1, /follow, $
+           levels=vals, C_thick=[1,1,2], color=cgcolor('black'), $
+           background=cgcolor('white'), charsize=1.5, c_charsize=1.0
+#+END_SRC
+
+#+CAPTION: contour thickness
+#+ATTR_LATEX: :placement [H]
+[[file:img/contour_thickness.png]]
+
+*** line color
+
+#+BEGIN_SRC idl
+  contour, peak, lon, lat, xstyle=1, ystyle=1, levels=vals, $
+           color=cgcolor('blue'), c_color=cgcolor('orange'), $
+           background=cgcolor('white'), /follow, charsize=1.5, $
+           c_charsize=1.0
+#+END_SRC
+
+#+CAPTION: contour color
+#+ATTR_LATEX: :placement [H]
+[[file:img/contour_color.png]]
+
+#+BEGIN_SRC idl
+  Device, Get_Decomposed=currentMode
+  Device, Decomposed=0
+  LoadCT, 33, NColors=12, Bottom=1
+  Contour, peak, lon, lat, xstyle=1, ystyle=1, Levels=vals, /NoData, $
+           Background=cgColor('white'), Color=cgColor('black'), $
+           charsize=1.5, c_charsize=1.0
+  Contour, peak, lon, lat, Levels=vals, /Overplot, $
+           C_Colors=IndGen(12) + 1, /follow, charsize=1.5, $
+           c_charsize=1.0
+  Device, Decomposed=currentMode
+#+END_SRC
+
+#+CAPTION: contour more color
+#+ATTR_LATEX: :placement [H]
+[[file:img/contour_color_1.png]]
+
+** filling color
+
+#+BEGIN_SRC idl
+  Device, Get_Decomposed=currentMode
+  Device, Decomposed=0
+  LoadCT, 33, NColors=12, Bottom=1
+  Contour, peak, lon, lat, xstyle=1, ystyle=1, Levels=vals, /fill, $
+           C_Colors=IndGen(12)+1, Background=cgColor('white'), $
+           Color=cgColor('black')
+  Device, Decomposed=currentMode
+#+END_SRC
+
+#+CAPTION: contour filling color
+#+ATTR_LATEX: :placement [H]
+[[file:img/contour_filling.png]]
+
+if you want to see contour lines on the color filled image, just
+use overplot
+
+#+BEGIN_SRC idl
+  contour, peak, lon, lat, xstyle=1, ystyle=1, /follow, levels=vals, $
+           /overplot, c_color=cgColor('white')
+#+END_SRC
+
+#+CAPTION: contour filling color overplot
+#+ATTR_LATEX: :placement [H]
+[[file:img/contour_filling_overplot.png]]
+
+Add a color bar
+
+#+BEGIN_SRC idl
+  cgsetcolorstate, 0, CurrentState=currentState
+  LoadCT, 33, NColors=nlevels, Bottom=1
+  contour, peak, lon, lat, /cell_fill, levels=vals, $
+           position=[0.125, 0.125, 0.95, 0.80], $
+           background=cgColor('white'), color=cgColor('black'), $
+           xstyle=1, ystyle=1, c_colors=indgen(nlevels)+1
+  contour, peak, lon, lat, /overplot, /follow, $
+           color=cgColor('black'), levels=vals
+  cgsetcolorstate, currentState
+  cgColorbar, range=[min(peak), max(peak)], $
+              divisions=nlevels, xticklen=1, xminor=0, $
+              annotatecolor='black', ncolors=nlevels, bottom=1, $
+              position=[0.125, 0.915, 0.955, 0.95], charsize=0.75
+#+END_SRC
+
+#+CAPTION: contour color bar
+#+ATTR_LATEX: :placement [H]
+[[file:img/contour_colorbar.png]]
+
+** cgContour
+
+#+BEGIN_SRC idl
+  data = cgdemodata(2)
+  loadct, 0, /silent
+  window
+  cgcontour, data, title='Normal Contour Plot', $
+             xtitle='X Title', ytitle='Y Title'
+#+END_SRC
+
+#+caption: cgContour Normal Plot
+#+attr_latex: :placement [H]
+[[file:img/cgcontour_normal.png]]
+
+#+BEGIN_SRC idl
+  cgloadct, 17, /brewer
+  cgloadct, 4, ncolors=10, bottom=1, /brewer, /reverse
+  c_colors = indgen(10) + 1
+  position = [0.1, 0.1, 0.9, 0.8]
+  cgcontour, data, nlevels=10, /fill, $
+             position=position, c_colors=c_colors
+  cgcontour, data, nlevels=10, /overplot
+  cgcolorbar, divisions=10, ncolors=10, bottom=1, $
+              range=[min(data), max(data)], ticklen=1.0, $
+              position=[0.1, 0.90, 0.90, 0.94], charsize=0.75
+#+END_SRC
+
+#+caption: cgContour Filled Contour
+#+attr_latex: :placement [H]
+[[file:img/cgcontour_filled_color.png]]
+
+#+CAPTION: cgContour Labels
+#+ATTR_LATEX: :placement [H]
+#+ATTR_HTML: :border 2 :rules all :frame border :class center
+|-----------------+----------------------------|
+| /Label/ keyword | Meaning                    |
+|-----------------+----------------------------|
+|     1 (default) | labels every contour level |
+|               2 | labels every other contour |
+|               3 | labels every third contour |
+|               0 | no contour labeling        |
+|-----------------+----------------------------|
+
+#+BEGIN_SRC idl
+  window, 0, xsize=400, ysize=400
+  cgcontour, data, nlevels=10, axiscolor='blue', $
+             color='red'
+  window, 1, xsize=400, ysize=400
+  cgcontour, data, nlevels=5, axiscolor='brown', $
+             c_colors=['aquamarine', 'dark green', 'orange', $
+                       'crimson', 'purple']
+#+END_SRC
+
+#+caption: cgContour Colors
+#+attr_latex: :placement [H]
+[[file:img/cgcontour_colors.png]]
+
+* Surface
+** basic
+
+Surface of 2D data can be easily made using 'surface' command
+
+#+BEGIN_SRC idl
+  peak=cgdemodata(2)
+  lon=findgen(41)*50./41-122
+  lat=findgen(41)*(24./40)+24
+  surface,peak,lon,lat,xtitle='longitude',$
+          ytitle='latitude',ztitle='elevation', charsize=2.5, $
+          color=cgcolor('black'), background=cgcolor('white'), $
+          xstyle=1, ystyle=1, zstyle=0
+#+END_SRC
+
+#+CAPTION: surface
+#+ATTR_LATEX: :placement [H]
+[[file:img/surface.png]]
+
+#+BEGIN_SRC idl
+  cgsurface,peak,lon,lat,xtitle='longitude',$
+            ytitle='latitude',ztitle='elevation', $
+            xstyle=1, ystyle=1, zstyle=0
+#+END_SRC
+
+** title
+
+We usually use /xyouts/ to make title of the surface
+
+#+BEGIN_SRC idl
+  xyouts,0.5,0.90,/normal,size=2.0,'Surface',align=0.5, $
+         color=cgcolor('black')
+#+END_SRC
+
+#+CAPTION: xyouts
+#+ATTR_LATEX: :placement [H]
+[[file:img/surface_title_xyouts.png]]
+
+** rotating
+
+The default value of /A[xz]/ is 30
+
+#+BEGIN_SRC idl
+  surface,peak,lon,lat,Ax=60,Az=60,charsize=2.5, $
+          color=cgcolor('black'), background=cgcolor('white')
+#+END_SRC
+
+#+CAPTION: surface rotating
+#+ATTR_LATEX: :placement [H]
+[[file:img/surface_rotating.png]]
+
+** with contour
+
+#+BEGIN_SRC idl
+  Surface, peak, lon, lat, charsize=2.5, $
+           Color=cgColor('black'), $
+           Background=cgColor('white'), $
+           XStyle=5, YStyle=5, ZStyle=0, $
+           AX=45, AZ=60, /Save
+  Contour, peak, lon, lat, /T3D, XStyle=1, charsize=2.5, $
+           YStyle=1, XTitle=xtitle, YTitle=ytitle, $
+           /NoErase, Color=cgColor('black'), /NoData
+  Contour, peak, lon, lat, /T3D, /Overplot, charsize=2.5, $
+           NLevels=12, C_Label=Replicate(1,12), /NoClip, $
+           ZValue=0.0, /Downhill, Color=cgColor('blu6')
+#+END_SRC
+
+#+caption: Surface with Contour
+#+attr_latex: :placement [H]
+[[file:img/surface_with_contour.png]]
+
+** skirt
+
+#+BEGIN_SRC idl
+  surface, peak, lon, lat, charsize=2.5, $
+           color=cgcolor('black'), $
+           background=cgcolor('white'), $
+           xstyle=1, ystyle=1, zstyle=0, $
+           ax=30, az=60, skirt=0
+#+END_SRC
+
+#+caption: Surface Skirt
+#+attr_latex: :placement [H]
+[[file:img/surface_skirt.png]]
+
+** color
+
+#+BEGIN_SRC idl
+  surface, peak, lon, lat, charsize=2.5, $
+           color=cgcolor('black'), $
+           background=cgcolor('white'), $
+           xstyle=1, ystyle=1, zstyle=0, /nodata
+  surface, peak, lon, lat, charsize=2.5, $
+           color=cgcolor('grn5'), /noerase, $
+           xstyle=5, ystyle=5, zstyle=4
+#+END_SRC
+
+#+CAPTION: surface color
+#+ATTR_LATEX: :placement [H]
+[[file:img/surface_color.png]]
+
+#+BEGIN_SRC idl
+  surface, peak, lon, lat, charsize=2.5, $
+           color=cgcolor('black'), $
+           background=cgcolor('white'), $
+           xstyle=1, ystyle=1, zstyle=0
+  surface, peak, lon, lat, charsize=2.5, $
+           color=cgcolor('grn5'), /noerase, $
+           xstyle=5, ystyle=5, zstyle=4, $
+           bottom=cgcolor('red5')
+#+END_SRC
+
+#+caption: Surface Bottom Color
+#+attr_latex: :placement [H]
+[[file:img/surface_color_bottom.png]]
+
+#+BEGIN_SRC idl
+  surface, peak, lon, lat, charsize=2.5, $
+           color=cgcolor('black'), $
+           background=cgcolor('white'), $
+           xstyle=1, ystyle=1, zstyle=0
+  surface, peak, lon, lat, charsize=2.5, $
+           color=cgcolor('red5'), /noerase, $
+           xstyle=5, ystyle=5, zstyle=4, /skirt
+  surface, peak, lon, lat, charsize=2.5, $
+           color=cgcolor('grn5'), /noerase, $
+           xstyle=5, ystyle=5, zstyle=4
+#+END_SRC
+
+#+caption: Surface Skirt Color
+#+attr_latex: :placement [H]
+[[file:img/surface_skirt_color.png]]
+
+#+BEGIN_SRC idl
+  snowdepth = cgdemodata(3)
+  cgsetcolorstate, 0, currentstate=currentstate
+  set_shading, values=[0, 249]
+  loadct, 33
+  surface, peak, lon, lat, charsize=2.0, $
+           color=cgcolor('black', 250), $
+           background=cgcolor('white', 251), $
+           xstyle=1, ystyle=1, zstyle=0, $
+           shades=bytscl(snowdepth, top=249)
+  cgsetcolorstate, currentstate
+  cgcolorbar, ncolors=250, divisions=8, $
+              range=[min(peak), max(peak)], $
+              xminor=0, format='(I0)', $
+              annotatecolor='black', xtitle='', $
+              position=[0.2, 0.92, 0.8, 0.95], $
+              title='Pressure Units'
+#+END_SRC
+
+#+caption: Surface Shading with a Second Data Set
+#+attr_latex: :placement [H]
+[[file:img/surface_shading.png]]
+
+** shaded surface
+
+#+BEGIN_SRC idl
+  shade_surf,peak,lon,lat,Az=45, charsize=2.0, $
+             color=cgcolor('black'), $
+             background=cgcolor('white')
+#+END_SRC
+
+#+CAPTION: shaded surface
+#+ATTR_LATEX: :placement [H]
+[[file:img/shaded_surface.png]]
+
+#+BEGIN_SRC idl
+  cgsetcolorstate, 0, currentstate=currentstate
+  set_shading, values=[0, 249], light=[0.0, 1.0, 0.5]
+  cgloadct, 5, /brewer, /reverse, ncolors=250
+  shade_surf, peak, lon, lat, charsize=2.0, $
+              color=cgcolor('black', 250), $
+              background=cgcolor('white', 251), $
+              xstyle=1, ystyle=1, zstyle=0
+  cgsetcolorstate, currentstate
+#+END_SRC
+
+#+CAPTION: shaded surface with color and different light position
+#+ATTR_LATEX: :placement [H]
+[[file:img/shaded_surface_light.png]]
+
+#+BEGIN_SRC idl
+  cgsetcolorstate, 0, currentstate=currentstate
+  cgloadct, 5, /brewer, /reverse, ncolors=250
+  shade_surf, peak, lon, lat, charsize=2.0, $
+              color=cgcolor('black', 250), $
+              background=cgcolor('white', 251), $
+              xstyle=1, ystyle=1, zstyle=0, $
+              shades=bytscl(peak, top=249)
+  cgloadct, 33, ncolors=250
+  surface, peak, lon, lat, charsize=2.0, $
+           color=cgcolor('black', 250), $
+           background=cgcolor('white', 251), $
+           xstyle=5, ystyle=5, zstyle=4, /noerase, $
+           shades=bytscl(snowdepth, top=249)
+  cgsetcolorstate, currentstate
+#+END_SRC
+
+#+caption: shaded surface with a wire mesh surface
+#+attr_latex: :placement [H]
+[[file:img/shaded_surf_wire_mesh.png]]
+
+** 3d scatter plot
+
+#+BEGIN_SRC idl
+  ;; random data
+  data2d = cgdemodata(2)
+  s = size(data2d, /dimensions)
+  lon = (indgen(s[0]) * 25000L - 500000L) / 1000
+  lat = (indgen(s[1]) * 25000L - 500000L) / 1000
+  lat2d = rebin(reform(lat, 1, 41), 41, 41)
+  lon2d = rebin(lon, 41, 41)
+  pts = round(randomu(-3L, 200) * 41 * 41)
+  datairr = data2d[pts]
+  lonirr = lon2d[pts] + random(5L, 200) * 50 - 25
+  latirr = lat2d[pts] + random(8L, 200) * 50 - 25
+  surface, dist(100), xstyle=1, ystyle=1, /nodata, $
+           xrange=[-550, 550], yrange=[-550, 550], $
+           zrange=[0, 1500], color=cgcolor('black'), $
+           background=cgcolor('white'), charsize=2.0, $
+           position=[0.075, 0.075, 0.925, 0.750], /save
+  ;; add axes
+  axis, xaxis=1, /t3d, xstyle=1, charsize=2.0, $
+        color=cgcolor('black')
+  axis, yaxis=1, /t3d, ystyle=1, charsize=2.0, $
+        color=cgcolor('black')
+  axis, zaxis=0, /t3d, 550, 550, charsize=2.0, $
+        color=cgcolor('black')
+  axis, zaxis=0, /t3d, 550, -550, charsize=2.0, $
+        color=cgcolor('black')
+  ;; load color table
+  symcolors = fix(bytscl(datairr))
+  loadct, 33, /silent
+  ;; draw light gray lines
+  num = n_elements(datairr)
+  for j=0, num-1 do plots, [lonirr[j], lonirr[j]], $
+                           [latirr[j], latirr[j]], $
+                           [datairr[j], 0], $
+                           color=cgcolor('light gray'), /t3d
+  ;; draw a dot at the bottom of the light gray lines
+  for j=0, num-1 do plots, lonirr[j], latirr[j], 0, $
+                           /t3d, psym=3, symsize=2.0, $
+                           color=cgcolor('black')
+  ;; draw a filled circle symbol in color at the top of the
+  ;; light gray lines
+  for j=0, num-1 do plots, lonirr[j], latirr[j], $
+                           datairr[j], /t3d, psym=symcat(16), $
+                           symsize=4.0, $
+                           color=cgcolor(strtrim(symcolors[j], 2))
+  ;; color bar
+  loadct, 33
+  cgcolorbar, divisions=6, format='(I0)', $
+              annotatecolor='black', charsize=1.0, $
+              position=[0.2, 0.88, 0.8, 0.92]
+#+END_SRC
+
+#+caption: 3D Scatter Plot
+#+attr_latex: :placement [H]
+[[file:img/3d_scatter_plot.png]]
+
+** cgSurf
+
+#+BEGIN_SRC idl
+  cgsurf, cgdemodata(3), color='red', bottom='blue', $
+          title='Colorful Surface', tsize=2.0
+#+END_SRC
+
+#+BEGIN_SRC idl
+  cgloadct, 5, /brewer, /reverse
+  cgsurf, data2d, lon, lat, charsize=2.0, $
+          xstyle=1, ystyle=1, zstyle=0, $
+          shades=bytscl(data2d), /shaded
+  cgloadct, 33
+  cgsurf, data2d, lon, lat, charsize=2.0, $
+          xstyle=5, ystyle=5, zstyle=4, /noerase, $
+          shades=bytscl(snowdepth)
+#+END_SRC
+
+#+BEGIN_SRC idl
+  cgloadct, 5, rgb_table=palette
+  cgsurf, cgdemodata(2), palette=palette, /elevation, $
+          charsize=2.0
+#+END_SRC
+
+#+BEGIN_SRC idl
+  cgwindow, wxsize=800, wysize=400
+  cgloadct, 33, /window
+  cgsurf, data2d, /elevation, layout=[2, 1, 1], $
+          /shaded, /addcmd
+  cgcontour, data2d, nlevels=12, /fill, $
+             layout=[2, 1, 2], /addcmd
+  cgcontour, data2d, nlevels=12, color='charcoal', $
+             layout=[2, 1, 2], /addcmd
+#+END_SRC
+
+#+caption: cgSurf Multiplot
+#+attr_latex: :placement [H]
+[[file:img/cgsurf_multi.png]]
+
+** cgSurface
+
+#+BEGIN_SRC idl
+  cgsurface, data2d, lon, lat, $
+             xtitle='Longitude', ytitle='Latitude', $
+             ztitle='Atmosphere Pressure'
+  cgsurface, data2d, lon, lat, $
+             xtitle='Longitude', ytitle='Latitude', $
+             ztitle='Atmosphere Pressure', /shaded
+#+END_SRC
+
+#+caption: cgSurface Basic
+#+attr_latex: placement [H]
+[[file:img/cgsurface_basic.png]]
+
+#+BEGIN_SRC idl
+  earth = cgdemodata(7)
+  cgsurface, data2d, lon, lat, zscale=0.5, $
+             xtitle='Longitude', ytitle='Latitude', $
+             ztitle='Atmosphere Pressure', $
+             texture_image=earth, ctable=4, /brewer, $
+             title='2D Image as Texture'
+  rose = cgdemodata(16)
+  cgsurface, data2d, lon, lat, zscale=0.5, $
+             xtitle='Longitude', ytitle='Latitude', $
+             ztitle='Atmosphere Pressure', $
+             texture_image=rose, $
+             title='True-Color Image as Texture'
+#+END_SRC
+
+#+caption: cgSurface Image as Texture
+#+attr_latex: :placement [H]
+[[file:img/cgsurface_texture.png]]
+
+#+BEGIN_SRC idl
+  ;; read the image
+  file = filepath(subdir=['examples', 'data'], $
+                  'elev_t.jpg')
+  read_jpeg, file, image
+  ;; read the 64x64 dem byte data
+  file = filepath(subdir=['examples', 'data'], $
+                  'elevbin.dat')
+  dem = bytarr(64, 64)
+  openr, lun, file, /get_lun
+  readu, lun, dem
+  free_lun, lun
+  ;; place the image onto the dem as a texture map
+  cgsurface, dem, texture_image=image, zscale=0.5
+#+END_SRC
+
+#+caption: cgSurface 3D Map
+#+attr_latex: :placement [H]
+[[file:img/cgsurface_map.png]]
+
+* Image position
+** margin
+
+Margins are controlled by /!x.margin/ and /!y.margin/, also by
+keywords of plot command /xmargin/ and /ymargin/. The default values
+are [10,3] and [3,3], which means N times of character width of margin
+each side.
+** relative position
+
+Relative position is controlled by /!p.position/ or keyword /position/
+of plot command,which means the relative position of the left bottom
+corner and the top right corner.The value is between 0 and 1.
+
+#+BEGIN_SRC idl
+  contour, peak, position=[0.1, 0.1, 0.5, 0.9]
+#+END_SRC
+** region
+
+Similar to relative position, position of region is controlled by
+/!p.region/, but no plot keyword available.Don't forget to reset the
+system variable to 0 after use.
+** multiple image
+
+/!P.Multi/ is used to create multi-image in a window or PostScript
+page.
+
+#+CAPTION: !P.Multi
+#+ATTR_LATEX: :placement [H]
+#+ATTR_HTML: :border 2 :rules all :frame border :class center
+|------+----------------------------------------|
+| item | meaning                                |
+|------+----------------------------------------|
+|    0 | number of images rest you want to draw |
+|    1 | number of columns                      |
+|    2 | number of rows                         |
+|    3 | number of floors in z axis             |
+|    4 | by row--0, or by column--1             |
+|------+----------------------------------------|
+
+Don't forget to reset it to 0 after use.
+
+Sometimes we have to add a title, hence the out margin needs to be
+modified.
+
+#+BEGIN_SRC idl
+  !p.Multi = [0,2,2,0,1]
+  !y.Omargin = [2,4]
+  Plot, cgDemoData(1), color=cgcolor('black'), $
+        background=cgcolor('white')
+  Contour, cgDemoData(2), xstyle=1, ystyle=1, nlevels=10, $
+           color=cgcolor('black')
+  Surface, cgDemoData(2), color=cgcolor('black')
+  Shade_Surf, cgDemoData(2), color=cgcolor('black'), $
+              background=cgcolor('white')
+  XYOuts, 0.5, 0.9, /Normal, 'Four Graphics Plots', align=0.5, $
+          charsize=2.5, color=cgcolor('black')
+  !p.Multi = 0
+#+END_SRC
+
+#+CAPTION: multi image
+#+ATTR_LATEX: :placement [H]
+[[file:img/multi_plot.png]]
+
+Another way is to use /Coyote library/,
+
+#+BEGIN_SRC idl
+  cgdisplay
+  cgloadct, 33, rgb_table=palette
+  cgplot, cgdemodata(1), layout=[2, 2, 3], color='red'
+  cgcontour, cgdemodata(2), nlevels=12, $
+             layout=[2, 2, 1], color='dodger blue'
+  cgsurf, cgdemodata(2), /elevation, layout=[2, 2, 4], $
+          palette=palette
+  cgimage, cgdemodata(19), multimargin=4, /axes, $
+          layout=[2, 2, 2]
+#+END_SRC
+
+#+CAPTION: multi image
+#+ATTR_LATEX: :placement [H]
+[[file:img/mult_use_cg.png]]
+
+* Add text to image
+** font type
+
+Font is determined by /!P.Font/ or /Plot/ keyword /Font/.
+
+#+CAPTION: !P.Font
+#+ATTR_LATEX: :placement [H]
+#+ATTR_HTML: :border 2 :rules all :frame border :class center
+|---------+---------------------------------------------|
+| !P.Font | Font Type                                   |
+|---------+---------------------------------------------|
+|      -1 | Vector font (aka soft font or Hershey font) |
+|       0 | hard font                                   |
+|       1 | TrueType font                               |
+|---------+---------------------------------------------|
+
+Set default /TrueType/ font to /Courier/,
+
+#+BEGIN_SRC idl
+  device, set_font='Courier', /tt_font
+#+END_SRC
+
+The same as /Times/,/Helvetica/ and /Symbol/.
+** XYOutS
+*** /position/
+
+The first parameter means X, the second parameter means Y by data
+coord by default. We can add /Normal/ keyword to use normalized
+position
+
+#+BEGIN_SRC idl
+  time = findgen(100)*6.0/100.0
+  plot, time, cgDemoData(1), Position=[0.15, 0.15, 0.95, 0.85]
+  XYoutS, 0.2, 0.92, 'Results: Experiment 35F3a', Size=2.0, /Normal
+#+END_SRC
+
+*** vector font
+
+#+CAPTION: Hershey font and index in IDL
+#+ATTR_LATEX: :placement [H]
+#+ATTR_HTML: :border 2 :rules all :frame border :class center
+|-------+--------------------+-------+-------------------|
+| value | font               | value | font              |
+|-------+--------------------+-------+-------------------|
+| !3    | Simplex Roman      | !12   | Simplex Script    |
+| !4    | Simplex Greek      | !13   | Complex Script    |
+| !5    | Duplex Roman       | !14   | Gothic Italian    |
+| !6    | Complex Roman      | !15   | Gothic German     |
+| !7    | Complex Greek      | !16   | Cyrillic          |
+| !8    | Complex Italian    | !17   | Triplex Roman     |
+| !9    | Math Font          | !18   | Triplex Italian   |
+| !10   | Special Characters | !20   | Miscellaneous     |
+| !11   | Gothic English     | !X    | (Back to default) |
+|-------+--------------------+-------+-------------------|
+
+we can use /showfont/ command to view each font
+
+#+BEGIN_SRC idl
+  window, /free, xsize=600, ysize=600
+  showfont, 9, ''
+#+END_SRC
+
+use different vector font,
+
+#+BEGIN_SRC idl
+  time = findgen(100)*6.0/100.0
+  plot, time, cgDemoData(1), Position=[0.15, 0.15, 0.95, 0.85], $
+        xtitle='Time', ytitle='Signal', color=cgcolor('black'), $
+        background=cgcolor('white'), charsize=1.5
+  XYoutS, 0.2, 0.92, '!12Results: Experiment 35F3a!X', Size=2.0, $
+          /Normal, color=cgcolor('black')
+#+END_SRC
+
+#+CAPTION: another vector font
+#+ATTR_LATEX: :placement [H]
+[[file:img/xyouts_font.png]]
+
+*** /alignment/
+
+#+CAPTION: Alignment
+#+ATTR_LATEX: :placement [H]
+#+ATTR_HTML: :border 2 :rules all :frame border :class center
+|-------+-----------|
+| Value | Alignment |
+|-------+-----------|
+|   0.0 | left      |
+|   0.5 | center    |
+|   1.0 | right     |
+|-------+-----------|
+
+#+BEGIN_SRC idl
+  plot, time, cgDemoData(1), Position=[0.15, 0.15, 0.95, 0.85], $
+        xtitle='Time', ytitle='Signal', color=cgcolor('black'), $
+        background=cgcolor('white'), charsize=1.5
+  XYoutS, 0.5, 0.92, '!12Results: Experiment 35F3a!X', Size=2.0, $
+          /Normal, align=0.5, color=cgcolor('black')
+#+END_SRC
+
+will align center.
+*** delete
+
+we can delete text by repeat the previous /XYOutS/ command followed
+by /Color=!P.Background/ or other background color used.
+*** orientation
+
+Using the keyword /orientation/ (between -180 and 180).
+* Image I/O of common formats
+** formats
+
+#+CAPTION: image formats
+#+ATTR_LATEX: :placement [H]
+#+ATTR_HTML: :border 2 :rules all :frame border :class center
+|---------+-----------+------------+------------|
+| Format  | Read      | Write      | Query      |
+|---------+-----------+------------+------------|
+| BMP     | read_bmp  | write_bmp  | query_bmp  |
+| GIF     | read_gif  | write_gif  | query_gif  |
+| JPEG    | read_jpeg | write_jpeg | query_jpeg |
+| PICT    | read_pict | write_pict | query_pict |
+| PBM/PPM | read_ppm  | write_ppm  | query_ppm  |
+| PNG     | read_png  | write_png  | query_png  |
+|---------+-----------+------------+------------|
+** reading image data
+
+#+BEGIN_SRC idl
+  startPath = File_DirName(Filepath(Root_Dir=!Dir, $
+                                    Subdirectory=['examples', 'data'], '*'))
+  file = Dialog_Pickfile(File='muscle.jpg', $
+                         Filter='*,jpg', Path=startPath)
+  Read_JPEG, file, image
+#+END_SRC
+
+or you can use /read_image/
+
+#+BEGIN_SRC idl
+  image = read_image(file)
+#+END_SRC
+
+for /png/ and /tiff/ format image
+
+#+BEGIN_SRC idl
+  image = read_png(png_file)
+  image = read_image(png_file)
+  image = read_tiff(file, r, g, b, GeoTIFF=geo)
+  image = read_image(file, r, g, b, GeoTIFF=geo)
+#+END_SRC
+
+for /gif/ file
+
+#+BEGIN_SRC idl
+  read_gif, file, image, r, g, b
+#+END_SRC
+
+** information about image files
+
+#+BEGIN_SRC idl
+  validFile = query_image(file, info)
+  help, info, /structure
+  print, info.dimensions
+#+END_SRC
+
+There is a program in the /Coyote Library/ named /ImageSelect/ that takes
+advantage of /Dialog_Pickfile/, and the /Read_*/ and /Query_*/ routines to
+allow you to select common image files to read.
+
+#+BEGIN_SRC idl
+  image = imageselect(filter='*.jpg', /demo)
+#+END_SRC
+** writing image files
+
+let's take a snapshot and write the result to the image file
+
+#+BEGIN_SRC idl
+  cghistoplot, cgdemodata(7), /fill
+  snapshot = tvrd(true=1)
+  help, snapshot
+#+END_SRC
+
+the resulting image can be sent to any appropriate output file type.
+
+#+BEGIN_SRC idl
+  write_jpeg, 'test.jpg', snapshot, true=1, quality=75
+  write_png, 'test.png', snapshot
+  write_tiff, 'test.tiff', reverse(snapshot)
+  write_image, 'test.jpg', 'JPEG', snapshot
+#+END_SRC
+
+Or you can simply use /cgSnapshot/
+
+#+BEGIN_SRC idl
+  void = cgsnapshot(filename='test', /jpeg)
+  void = cgsnapshot(filename='test', /png)
+  void = cgsnapshot(filename='test', /tiff)
+  void = cgsnapshot(filename='test', /jpeg, /nodialog)
+#+END_SRC
+
+* Display image
+** traditional image display commands
+*** TVScl
+
+It is not recommended to use this command. You'd better use /BytScl/
+to byte scale an image data and then display the image
+
+*** TV
+
+Not recommended either :-(
+
+If you want to use the /TV/ command to display a 2D image, then you
+need to use the indexed color model when you display the image.
+
+display true color image
+
+#+BEGIN_SRC idl
+  rose = cgDemoData(16)
+  tv,rose,true=1
+#+END_SRC
+
+Unfortunately The /TV/ command wouldn’t display an alpha channel image
+properly in any case
+
+#+begin_quote
+Basically, it takes on the order of about 25 lines of code to display
+an image properly with the /TV/ command. And that is only if you want
+to get the colors right. If you want the image to show up in the right
+place in a PostScript file, or if you want to do other smart things,
+and believe me you do, you can multiply this number by a factor of 10
+or so to get the number of commands you really need. -- /David W.
+Fanning/
+#+end_quote
+
+** alternative image display commands
+*** /ImDisp/ (/by Liam Gumley/)
+
+http://www.gumley.com/PIP/Programs/imdisp.pro
+
+*** /cgImage/ (/Coyote Library/)
+** positioning
+
+#+BEGIN_SRC idl
+  position=[0.15,0.15,0.9,0.9]
+  stern=(cgdemodata(10))[*,*,1]
+  cgimage,stern,position=position
+#+END_SRC
+
+#+CAPTION: cgImage
+#+ATTR_LaTeX: :placement [H]
+[[file:img/cgimage_stern.png]]
+
+#+BEGIN_SRC idl
+  position=[0.15,0.15,0.9,0.9]
+  stern=(cgdemodata(10))[*,*,1]
+  cgimage,stern,position=position,/keep_aspect
+#+END_SRC
+
+#+CAPTION: cgImage keep aspect
+#+ATTR_LaTeX: :placement [H]
+[[file:img/cgImage_stern_keep_aspect.png]]
+
+#+BEGIN_SRC idl
+  cgImage, stern, Margin=0.1, /Keep_Aspect, /Axes,$
+      XRange=[-10,10], YRange=[0,50], Color='navy',$
+      AxKeywords={XTicklen:-0.035, YTickLen:-0.035}
+#+END_SRC
+
+#+CAPTION: cgImage coordinate
+#+ATTR_LaTeX: :placement [H]
+[[file:img/cgImage_range_coords.png]]
+** erase graphics window before display
+
+#+BEGIN_SRC idl
+  cgErase,'white'
+  cgImage,stern,margin=0.1
+#+END_SRC
+** image backgrounds
+
+#+BEGIN_SRC idl
+  cgImage,stern,background='wheat',margin=0.15,/axes,$
+      color='opposite'
+#+END_SRC
+
+by setting the axes color to /opposite/,/cgColor/ will calculate
+a color that contrast with the background color
+** display images with colors
+
+#+BEGIN_SRC idl
+  cgLoadCT,13,/brewer,/reverse,rgb_table=palette
+  cgImage,stern,background='wheat',margin=0.15,$
+      /axes,color='opposite',palette=palette
+#+END_SRC
+
+#+CAPTION: cgImage color
+#+ATTR_LaTeX: :placement [H]
+[[file:img/cgImage_color.png]]
+** combining images with other graphical display
+
+#+BEGIN_SRC idl
+  image=cgDemoData(18)
+  cgLoadCT,4,/brewer,/reverse
+  cgImage,image,/save,/axes,/keep_aspect
+  cgContour,image,nlevels=10,label=2,/overplot
+#+END_SRC
+
+#+CAPTION: cgImage color
+#+ATTR_LaTeX: :placement [H]
+[[file:img/cgImage_contour.png]]
+** interacting with images
+
+use /cgimageinfo/ to identify the location of the cursor in the
+display and returns the value in that place, interactively
+
+#+BEGIN_SRC idl
+  cgimageinfo,image
+  Click cursor in image window (window 0) to get image values.
+  Use LEFT mouse buton to inquire.
+  Use RIGHT mouse button to exit program.
+
+  Expecting cursor clicks in image window...
+  Value at  (85,258) is 7
+  Value at  (143,141) is 213
+  Value at  (176,169) is 255
+  Value at  (303,327) is 8
+  Value at  (175,384) is 25
+
+  Good-bye. cgImageInfo has returned control to IDL.
+
+#+END_SRC
+** identify locations in the image
+
+#+BEGIN_SRC idl
+  Cursor, xloc, yloc, /Down, /Device
+  normalcoords=convert_coord(xloc,yloc,/device,/to_normal)
+  xn=normalcoords[0]
+  yn=normalcoords[1]
+  p=position
+  dims=image_dimensions(image,xsize=xsize,ysize=ysize)
+  xvec=scale_vector(findgen(xsize+1),p[0],p[2])
+  yvec=scale_vector(findgen(xsize+1),p[1],p[3])
+  xpixel=value_locate(xvec,xn)
+  ypixel=value_locate(yvec,yn)
+  print,image[xpixel,ypixel]
+#+END_SRC
+** zooming images
+*** for non-true-color images
+
+#+BEGIN_SRC idl
+  minimg=min(stern,max=maximg)
+  subregion=stern[50:99,50:99]
+  window,xsize=400,ysize=400
+  cgimage,bytscl(subregion,min=minimg,max=maximg)
+#+END_SRC
+*** for true-color-images
+
+#+BEGIN_SRC idl
+  rose=cgdemodata(16)
+  subregion=rose[*,50:100,50:100]
+  cgimage,subregion
+#+END_SRC
+*** /FSC_ZImage/
+
+an interactive zoom image program from /Coyote Library/
+** multiple images
+
+#+BEGIN_SRC idl
+  head=cgdemodata(8)
+  head=reverse(head,2)
+  s=size(head,/dimensions)
+  cgloadct,0
+  cgdisplay,9*s[0],6*s[1]
+  !p.multi=[0,9,6]
+  !x.omargin=[0,25]
+  !y.omargin=[0,8]
+  for j=0,53 do cgimage,head[*,*,j],$
+      background='white',multimargin=0.25
+  !p.multi=0
+  cgColorbar,/vertical,range=[0,10],$
+      position=[0.94,0.15,0.97,0.80],$
+      format='(F0.2)'
+  cgtext,0.45,0.95,'MRI Study of the Head',$
+      /normal,Alignment=0.5
+  !x.omargin=0
+  !y.omargin=0
+#+END_SRC
+
+#+CAPTION: cgImage Multi-display
+#+ATTR_LaTeX: :placement [H]
+[[file:img/cgImage_multi.png]]
+
+The MultiMargin keyword is a four-element array that specifies
+margins about the bottom, left, top, and right of the image,
+respectively.
+
+#+BEGIN_SRC idl
+  loadct,33,/silent
+  !p.multi=[0,2,2]
+  margin=[4,4,2,0]
+  cgimage,cgdemodata(18),/keep_aspect,/axes,$
+      multimargin=margin
+  cgimage,cgdemodata(18),/keep_aspect,/axes,$
+      multimargin=margin
+  cgimage,cgdemodata(18),/keep_aspect,/axes,$
+      multimargin=margin
+  cgimage,cgdemodata(18),/keep_aspect,/axes,$
+      multimargin=margin
+  !p.multi=0
+#+END_SRC
+
+#+CAPTION: cgImage MultiMargin
+#+ATTR_LaTeX: :placement [H]
+[[file:img/cgImage_multimargin.png]]
+** transparent images
+
+Transparent images have an alpha channel that indicates how the
+transparent image is to be “blended” with the information already
+on the display.Alpha channels are generally coded as values from
+0 to 1 (or, in images, from 0 to 255), with 0 indicating total
+transparency (i.e., display the background pixel) and 1 indicating
+total opacity (i.e., display the foreground pixel).
+*** image with alpha channel
+
+download a png file from
+[[http://www.idlcoyote.com/books/tg/data/toucan.png]]
+
+#+BEGIN_SRC idl
+  toucan=read_png('toucan.png')
+  !p.multi=[0,2,1]
+  window,xsize=162*2,ysize=150
+  cgimage,toucan[0:2,*,*]
+  cgimage,reform(toucan[3,*,*])
+  !p.multi=0
+#+END_SRC
+
+#+CAPTION: cgImage separate alpha
+#+ATTR_LaTeX: :placement [H] :width .5\textwidth
+[[file:img/cgimage_separate_alpha.png]]
+
+#+BEGIN_SRC idl
+  window,xsize=400,ysize=400
+  cgerase,color='bisque'
+  cgimage,toucan,/keep_aspect,/noerase,margin=0.2
+#+END_SRC
+
+#+CAPTION: cgImage alpha channel image
+#+ATTR_LaTeX: :placement [H] :width .5\textwidth
+[[file:img/cgImage_transparent.png]]
+
+#+BEGIN_SRC idl
+  window,1,xsize=400,ysize=400
+  marsfile = Filepath(Subdir=['examples', 'data'],$
+                      'marsglobe.jpg')
+  read_jpeg,marsfile,mars
+  cgimage,mars
+  cgimage,toucan,alphafgpos=[0.3,0.3,0.7,0.7]
+#+END_SRC
+
+#+CAPTION: cgImage alpha channel image with background image
+#+ATTR_LaTeX: :placement [H] :width .5\textwidth
+[[file:img/cgImage_alpha_channel_image_bac.png]]
+*** creating blended images
+
+#+BEGIN_SRC idl
+  scanfile = Filepath(Subdir=['examples','data'], $
+                      'md1107g8a.jpg')
+  Read_JPEG, scanfile, scan
+  marsfile = Filepath(Subdir=['examples', 'data'],$
+                      'marsglobe.jpg')
+  read_jpeg,marsfile,mars
+  window,xsize=400,ysize=400
+  LoadCT, 0
+  cgImage, scan, /NoInterp
+  snapshot = cgSnapshot()
+  alpha = 0.6
+  blended = (snapshot * alpha) + (mars * (1-alpha))
+  Window, XSize=400*3, YSize=400
+  !P.Multi = [0,3,1]
+  cgImage, mars
+  cgImage, scan
+  cgImage, blended
+  !P.Multi = 0
+#+END_SRC
+
+#+CAPTION: cgImage blended image
+#+ATTR_LaTeX: :placement [H]
+[[file:img/cgImage_blended.png]]
+
+or you can use /cgBlendImage/ program from /Coyote Library/
+
+#+BEGIN_SRC idl
+  window,xsize=400,ysize=400
+  cgBlendImage,snapshot,mars,alpha=0.6
+#+END_SRC
+*** creating transparent images
+
+#+BEGIN_SRC idl
+  logofile = Filepath(Subdir=['examples','data'], $
+                      'examples.tif')
+  logo = Read_TIFF(logofile, r, g, b)
+  logo = Reverse(logo, 2)
+  TVLCT, r, g, b
+  Window, XSize=375, YSize=150
+  cgImage, logo, /NoInterp
+  logo24 = cgSnapshot()
+  alpha=bytarr(375,150)+255B
+  logo24 = Transpose(logo24, [1,2,0])
+  red=logo24[*,*,0]
+  grn=logo24[*,*,1]
+  blu=logo24[*,*,2]
+  blackIndices = Where( (red EQ 0) AND (grn EQ 0) $
+                        AND (blu EQ 0), count)
+  IF count GT 0 THEN alpha[blackIndices] = 0B
+  logo32 = [ [[red]], [[grn]], [[blu]], [[alpha]] ]
+  logo32 = Transpose(logo32, [2,0,1])
+  Write_PNG, 'idl_logo.png', logo32
+  image = Make_Transparent_Image(Color='black', $
+                                 Filename='idl_logo.png',$
+                                 /Save_PNG)
+  Window, XSize=400, YSize=400
+  cgImage, mars
+  cgImage, logo32, alphafgpos=[0.30,0.05,0.70,0.25]
+#+END_SRC
+
+#+CAPTION: idl logo
+#+ATTR_LaTeX: :placement [H] :width .5\textwidth
+[[file:img/idl_logo.png]]
+
+#+CAPTION: cgImage transparent logo
+#+ATTR_LaTeX: :placement [H] :width .5\textwidth
+[[file:img/cgImage_transparent_logo.png]]
+*** /transparent/
+
+#+BEGIN_SRC idl
+  cgDisplay, 500, 500
+  cgImage, cgDemoData(7), CTIndex=0
+  cgImage, cgDemoData(5), CTIndex=33, Transparent=30,$
+      Missing_Value=0,AlphaFGPos=[0.5, 0.5, 1.0, 1.0]
+#+END_SRC
+
+#+CAPTION: cgImage transparent display
+#+ATTR_LaTeX: :placement [H]
+[[file:img/cgImage_transparent_display.png]]
+** image in resizable graphics windows
+*** /ImDisp/
+
+#+BEGIN_SRC idl
+  image=cgdemodata(19)
+  cgwindow,'imdisp',image,margin=0.2,/erase
+#+END_SRC
+*** /cgImage/
+
+#+BEGIN_SRC idl
+  cgimage,image,margin=0.2,/window
+#+END_SRC
+
+when combined with other graphical display
+
+#+BEGIN_SRC idl
+  cgplot,cgdemodata(1),yrange=[0,80],/window
+  cgimage,image,position=[0.7,0.5,0.9,0.9],$
+      /keep_aspect,/addcmd
+#+END_SRC
+
+#+CAPTION: cgImage transparent display
+#+ATTR_LaTeX: :placement [H]
+[[file:img/cgImage_resizable.png]]
+* Postscript output
+** how does it work
+
+#+BEGIN_SRC idl
+
+  thisDevice = !d.name
+  set_plot, 'ps'
+  device, filename='plot_example.ps'
+  x = findgen(200) * 0.1
+  plot, x, sin(x)
+  device, /close_file
+  set_plot, thisDevice
+#+END_SRC
+
+The /!d.name/ system variable stores the name of the current graphics
+device. This is /WIN/ on a Windows operating system, and is /X/ on an Unix
+operating system. Once you have changed your graphics device, any graphical
+output will be sent to the new graphics device, e.g., when /!d.name/ is set
+to /PS/, graphical output will be written into a PostScript file. By
+default, the PostScript file that is created is named /idl.ps/, which can
+be modified with the /filename/ keyword to the /Device/ command.
+** change the configuration
+
+You can get the information of the current state of the PostScript device by
+
+#+BEGIN_SRC idl
+  set_plot, 'ps'
+  help, /device
+#+END_SRC
+
+The default page orientation is /Portrait/ with color output disabled.
+If you switch to /Landscape/ orientation and check the configuration
+
+#+BEGIN_SRC idl
+  device, /landscape
+  help, /device
+#+END_SRC
+
+#+CAPTION: Commonly used /device/ keywords for the /PS/ device
+#+ATTR_LATEX: :placement [H]
+#+ATTR_HTML: :border 2 :rules all :frame border :class center
+|                | <50>                                               |
+|----------------+----------------------------------------------------|
+| Keyword        | Purpose                                            |
+|----------------+----------------------------------------------------|
+| filename       | Set the output file name (default: idl.ps)         |
+| /portrait      | Select portrait orientation (default)              |
+| /landscape     | Select landscape orientation                       |
+| /color         | Select color output (default if grayscale)         |
+| bits_per_pixel | Set number of bits per pixel (default is 4)        |
+| xsize          | Set width of drawable area                         |
+| ysize          | Set height of drawable area                        |
+| xoffset        | Set offset of drawable area origin from left of page |
+| yoffset        | Set offset of drawable area origin from bottom of page |
+| /inches        | \tabincell{l}{ Set units of inches for size and offset keywords in this\\ call to device only (default is centimeters)} |
+| font_size      | Set font size (points, default is 12)              |
+| /close_file    | Complete and close the output file                 |
+|----------------+----------------------------------------------------|
+** producing color (or grayscale) output
+*** 24-bit color
+
+#+BEGIN_SRC idl
+  thisdevice = !d.name
+  set_plot, 'ps'
+  device, /color, bits_per_pixel=8
+  set_plot, thisdevice
+#+END_SRC
+
+Setting the /color/ keyword automatically copies the current color table
+vectors into the PostScript file, although colors can be changed at any time
+in PostScript files by loading colors and color tables. You can also copy
+the current color table vectors into the PostScript file at the time you set
+the PostScript device by using the /copy/ keyword to /set_plot/.
+
+#+BEGIN_SRC idl
+  set_plot, 'ps', /copy
+#+END_SRC
+
+But the input color mode now is /index/ by default, which makes the device
+act like an 8-bit index color graphics device. To put the PostScript device
+into a 24-bit color mode, you set the /decomposed/ keyword to 1.
+
+#+BEGIN_SRC idl
+  device, decomposed=1
+#+END_SRC
+
+or use the routines from the /Coyote Library/
+
+#+BEGIN_SRC idl
+  cgsetcolorstate, 1, currentstate=currentstate
+#+END_SRC
+*** color background
+
+On a display monitor, which is a raster device,
+
+#+BEGIN_SRC idl
+  plot, cgdemodata(1), background=cgcolor('wheat'), $
+        color=cgcolor('opposite')
+#+END_SRC
+
+However, this same command would result in a black on a white background if
+sent to a PostScript file, you have to 'fill' the PostScript file first.
+
+#+BEGIN_SRC idl
+  thisdevice = !d.name
+  set_plot, 'ps'
+  device, filename='plot_fill_back.ps'
+  device, /color, bits_per_pixel=8
+  cgsetcolorstate, 1, currentstate=currentstate
+  polyfill, [0,1,1,0,0], [0,0,1,1,0], /normal, $
+            color=cgcolor('wheat')
+  plot, cgdemodata(1), color=cgcolor('opposite'), $
+        /noerase
+  device, /close_file
+  set_plot, thisdevice
+#+END_SRC
+
+or, simply use /cgplot/
+
+#+BEGIN_SRC idl
+
+  thisdevice = !d.name
+  set_plot, 'ps'
+  device, filename='plot_fill_back.ps'
+  device, /color, bits_per_pixel=8
+  cgsetcolorstate, 1, currentstate=currentstate
+  cgplot, cgdemodata(1), background='wheat'
+  device, /close_file
+  set_plot, thisdevice
+#+END_SRC
+
+** window aspect ratio
+
+The /Coyote Library/ contains a function, named /pswindow/, that can
+“match” the aspect ratio of the current graphics window with a centered
+PostScript window having the same aspect ratio.
+
+#+BEGIN_SRC idl
+  window, xsize=600, ysize=400
+  output = pswindow(/metric)
+  help, output, /structure
+#+END_SRC
+
+then simply add the /output/ as extra arguments
+
+#+BEGIN_SRC idl
+  set_plot, 'ps'
+  device, _extra=output
+#+END_SRC
+
+We can also use /pswindow/ command to set the window aspect ratio rather than
+matching the window.
+
+#+BEGIN_SRC idl
+  output = pswindow(aspectratio=2./3)
+#+END_SRC
+
+** setting size and offset manually
+
+#+CAPTION: Portrait and Landscape orientation
+#+ATTR_LATEX: :placement [H]
+[[file:img/ps_orientation.png]]
+
+Now if you'd like to reproduce the plot in Portrait orientation, on a 8.5-
+inch $\times{}$ 11-inch page.
+
+#+BEGIN_SRC idl
+  ;; Set size and offset
+  page_width = 8.5
+  page_hight = 11.0
+  xsize = 6.5
+  ysize = 5.5
+  xoffset = (page_width - xsize) * 0.5
+  yoffset = (page_hight - ysize) * 0.5
+  ;; Config the PostScript device and plot
+  this_device = !d.name
+  set_plot, 'ps'
+  device, filename='plot_port.ps', /portrait
+  device, xsize=xsize, ysize=ysize, $
+          xoffset=xoffset, yoffset=yoffset, /inches
+  x = findgen(200) * 0.1
+  plot, x, sin(x)
+  device, /close_file
+  set_plot, this_device
+#+END_SRC
+
+To create the same plot in Landscape orientation with the same page size,
+the offset of the drawable area must be recomputed using a method that takes
+account of the new orientation
+
+#+BEGIN_SRC idl
+  ;; Set offset for landscape orientation
+  xoffset = (page_width - ysize) * 0.5
+  yoffset = (page_hight - xsize) * 0.5 + xsize
+  ;; Config and plot
+  this_device = !d.name
+  set_plot, 'ps'
+  device, filename='plot_landscape.ps', /landscape
+  device, xsize=xsize, ysize=ysize, $
+          xoffset=xoffset, yoffset=yoffset, /inches
+  x = findgen(200) * 0.1
+  plot, x, sin(x)
+  device, /close_file
+  set_plot, this_device
+#+END_SRC
+
+However, the Landscape file produced is **UPSIDE DOWN** ! You can simply
+use the /Cgfixps/ routine from the /Coyote Library/ to fix the bug
+
+#+BEGIN_SRC idl
+  cgfixps, 'plot_landscape.ps'
+#+END_SRC
+
+** setting size and offset automatically
+
+#+BEGIN_SRC idl
+  PRO PSON, FILENAME=FILENAME, PAPER=PAPER, MARGIN=MARGIN, $
+            PAGE_SIZE=PAGE_SIZE, INCHES=INCHES, ASPECT=ASPECT, $
+            LANDSCAPE=LANDSCAPE, QUIET=QUIET
+
+    ;; Check arguments
+    if (n_elements(filename) eq 0) then filename = 'idl.ps'
+    if (n_elements(paper) eq 0) then paper = 'LETTER'
+    if (n_elements(margin) eq 0) then begin
+       margin = 2.5
+    endif else begin
+       if keyword_set(inches) then margin = margin * 2.54
+    endelse
+
+    ;; Check if PostScript mode is active
+    if !d.name eq 'PS' then begin
+       message, 'POSTSCRIPT output is already active', /continue
+       return
+    endif
+
+    ;; Get ratio of character width/height to screen width/height
+    xratio = float(!d.x_ch_size) / float(!d.x_vsize)
+    yratio = float(!d.y_ch_size) / float(!d.y_vsize)
+
+    ;; Save current device information in common block
+    common pson_infomation, info
+    info = {device:!d.name, window:!d.window, font:!p.font, $
+            filename:filename, xratio:xratio, yratio:yratio}
+
+    ;; Get size of page (centimeters)
+    widths = [[8.5, 8.5, 11.0, 7.25] * 2.54, 21.0, 29.7]
+    heights = [[11.0, 14.0, 17.0, 10.50] * 2.54, 29.7, 42.0]
+    names = ['LETTER', 'LEGAL', 'TABLOID', 'EXECUTIVE', $
+             'A4', 'A3']
+    index = where(strupcase(paper) eq names, count)
+    if (count ne 1) then begin
+       message, 'PAPER selection not supported', /continue
+       return
+    endif
+    page_width = widths[index[0]]
+    page_height = heights[index[0]]
+
+    ;; If page size was supplied, use it
+    if (n_elements(page_size) eq 2) then begin
+       page_width = page_size[0]
+       page_height = page_size[1]
+       if keyword_set(inches) then begin
+          page_width = page_width * 2.54
+          page_height = page_height * 2.54
+       endif
+    endif
+
+    ;; Compute aspect ratio of page when margins are subtracted
+    page_aspect = float(page_height - 2.0 * margin) / $
+                  float(page_width - 2.0 * margin)
+
+    ;; Get aspect ratio of current graphics window
+    if (!d.window ge 0) then begin
+       win_aspect = float(!d.y_vsize) / float(!d.x_vsize)
+    endif else begin
+       win_aspect = 512.0 / 640.0
+    endelse
+
+    ;; If aspect ratio was supplied, use it
+    if (n_elements(aspect) eq 1) then $
+       win_aspect = float(aspect)
+
+    ;; Compute size of drawable area
+    case keyword_set(landscape) of
+       0 : begin
+          if (win_aspect ge page_aspect) then begin
+             ysize = page_height - 2.0 * margin
+             xsize = ysize / win_aspect
+          endif else begin
+             xsize = page_width - 2.0 * margin
+             ysize = xsize * win_aspect
+          endelse
+       end
+       1 : begin
+          if (win_aspect ge (1.0 / page_aspect)) then begin
+             ysize = page_width - 2.0 * margin
+             xsize = ysize / win_aspect
+          endif else begin
+             xsize = page_height - 2.0 * margin
+             ysize = xsize * win_aspect
+          endelse
+       end
+    endcase
+
+    ;; Compute offset of drawable area from page edges
+    if (keyword_set(landscape) eq 0) then begin
+       xoffset = (page_width - xsize) * 0.5
+       yoffset = (page_height - ysize) * 0.5
+    endif else begin
+       xoffset = (page_width - ysize) * 0.5
+       yoffset = (page_height - xsize) * 0.5 + xsize
+    endelse
+
+    ;; Switch to PostScript device
+    set_plot, 'PS'
+    device, landscape=keyword_set(landscape), scale_factor=1.0
+    device, xsize=xsize, ysize=ysize, $
+            xoffset=xoffset, yoffset=yoffset
+    device, filename=filename, /color, bits_per_pixel=8
+
+    ;; Set character size
+    xcharsize = round(info.xratio * !d.x_vsize)
+    ycharsize = round(info.yratio * !d.y_vsize)
+    device, set_character_size=[xcharsize, ycharsize]
+
+    ;; Report to user
+    if (keyword_set(quiet) eq 0) then $
+       print, filename, $
+              format='("Started POSTSCRIPT output to ", a)'
+
+  END
+#+END_SRC
+
+#+BEGIN_SRC idl
+  PRO PSOFF, QUIET=QUIET
+
+    ;; Check that PostScript output is active
+    if (!d.name ne 'PS') then begin
+       message, 'POSTSCRIPT output not active: ' + $
+                'nothing done', /continue
+       return
+    endif
+
+    ;; Get entry device information from common block
+    common pson_infomation, info
+    if (n_elements(info) eq 0) then begin
+       message, 'PSON was not called prior to PSOFF: ' + $
+                'nothing done', /continue
+       return
+    end
+
+    ;; Close PostScript device
+    device, /close_file
+    set_plot, info.device
+
+    ;; Restore window and font
+    if (info.window ge 0) then wset, info.window
+    !p.font = info.font
+
+    ;; Report to user
+    if (keyword_set(quiet) eq 0) then $
+       print, info.filename, $
+              format='("Ended POSTSCRIPT output to ", a)'
+
+  END
+#+END_SRC
+
+#+BEGIN_SRC idl
+  pson, file='surface.ps', margin=1.0
+  device, color=0, bits_per_pixel=4
+  z = dist(64)
+  z = shift(z, 32, 32)
+  z = exp(-(z * 0.1) ^ 2)
+  shade_surf, z, xstyle=1, ystyle=1, charsize=2, $
+  pixels=1000, xmargin=[4, 1], ymargin=[1, 0]
+  psoff
+#+END_SRC
+
+#+CAPTION: Surface
+#+ATTR_LATEX: :placement [H]
+[[file:img/surface.ps]]
+
+** encapsulated postscript output
+
+To produce PostScript output that can be inserted directly into other Post-
+Script documents, such as journal articles or books, you must select the
+encapsulated option before you send graphics output to the PostScript
+file.
+
+#+BEGIN_SRC idl
+  device, /encapsulated
+#+END_SRC
+
+If you would like to be able to see a representation of the graphic in the
+document into which you imported the file, you must specify a value for
+the /preview/ keyword. A Preview keyword value of 1 will cause the Post-
+Script driver to include a bit-mapped image of the graphic along with its
+PostScript description. If you would prefer to use a TIFF preview image,
+instead of a bit-mapped image, set the /preview/ keyword to 2.
+
+
+#+BEGIN_SRC idl
+  device, /encapsulated, preview=2
+#+END_SRC
+
+** setting the language level
+
+
+#+BEGIN_SRC idl
+  device, language_level=2
+#+END_SRC
+
+** using PostScript fonts
+*** font system
+
+The font type is controlled by /!p.font/ variable. A value of -1 selects
+Hershey fonts, a value of 0 selects hardware fonts, and a value of 1 selects
+TrueType fonts.
+
+#+BEGIN_SRC idl
+  this_device, !d.name
+  set_plot, 'ps'
+  device, _extra=pswindow(aspectratio=1.0/3), font_size=12, $
+          /encapsulated, filename='three_font_system.ps', $
+          /helvetica, /landscape
+  !p.multi=[0, 3, 1]
+  data = cgdemodata(1)
+  cgplot, data, font=-1, title='Hershey Fonts'
+  cgplot, data, font=0, title='Hardware Fonts'
+  cgplot, data, font=1, title='TrueType Fonts'
+  device, /close_file
+  !p.multi=0
+  set_plot, this_device
+#+END_SRC
+*** font mapping
+
+#+CAPTION: Default mapping of fonts
+#+ATTR_LATEX: :placement [H]
+#+ATTR_HTML: :border 2 :rules all :frame border :class center
+|--------+--------------------+------------------------------|
+| Number | Hershey Font       | PostScript Font              |
+|--------+--------------------+------------------------------|
+| !3     | Simplex Roman      | Helvetica                    |
+| !4     | Simplex Greek      | Helvetica-Bold               |
+| !5     | Duplex Roman       | Helvetica-Narrow             |
+| !6     | Complex Roman      | Helvetica-Narrow-BoldOblique |
+| !7     | Complex Greek      | Times-Roman                  |
+| !8     | Complex Italian    | Times-BoldItalic             |
+| !9     | Math Font          | Symbol                       |
+| !10    | Special Characters | ZapfDingbats                 |
+| !11    | Gothic English     | Courier                      |
+| !12    | Simplex Script     | Courier-Oblique              |
+| !13    | Complex Script     | Palatino-Roman               |
+| !14    | Gothic Italian     | Palatino-Italic              |
+| !15    | Gothic German      | Palatino-BoldItalic          |
+| !16    | Cyrillic           | AvantGrande-Book             |
+| !17    | Triplex Roman      | NewCenturySchlbk-Roman       |
+| !18    | Triplex Italian    | NewCenturySchlbk-Bold        |
+| !20    | Miscellaneous      | Undefined                    |
+| !X     | (Back to default)  | (Back to default)            |
+|--------+--------------------+------------------------------|
+
+#+BEGIN_SRC idl
+  thisdevice = !d.name
+  set_plot, 'ps'
+  device, /zapfchancery, font_size=9, /encapsulated, filename='zaph.ps'
+  cgplot, cgdemodata(1), font=0, title='ZapfChancery Font', $
+          xtitle='Time', ytitle='Signal Strength'
+  device, /close_file
+  set_plot, thisdevice
+#+END_SRC
+
+#+CAPTION: ZapfChancery Font
+#+ATTR_LATEX: :placement [H]
+[[file:img/zaph.ps]]
+
+*** TrueType Fonts
+
+#+BEGIN_SRC idl
+  set_plot, 'ps'
+  device, set_font='Times', /tt_font
+  !p.font = 1
+#+END_SRC
+
+for Bold and Italic fonts
+
+#+BEGIN_SRC idl
+  device, set_font='Times Bold', /tt_font
+  device, set_font='Times Italic', /tt_font
+  device, set_font='Times Bold Italic', /tt_font
+#+END_SRC
+
+*** rotating fonts
+
+
+#+BEGIN_SRC idl
+  set_plot, 'x'
+  cgplot, cgdemodata(1), font=0, xtitle='Good Fonts Here', $
+          ytitle='Bad Fonts Here'
+#+END_SRC
+
+
+#+BEGIN_SRC idl
+  set_plot, 'ps'
+  device, _extra=pswindow(aspectratio=1.0/2)
+  !p.multi = [0, 2, 1]
+  cgplot, cgdemodata(1), font=0, $
+          xtitle='Good Fonts', ytitle='And Good Fonts'
+  cgsurf, cgdemodata(2), xtitle='X Fonts', $
+          ytitle='Y Fonts', ztitle='Z Fonts', font=0
+  !p.multi=0
+  device, /close_file
+  cgfixps, 'idl.ps'
+  set_plot, 'x'
+#+END_SRC
+
+
+#+BEGIN_SRC idl
+  set_plot, 'ps'
+  device, _extra=pswindow(aspectratio=1.0/2)
+  !p.multi = [0, 2, 1, 0, 1]
+  cgsurf, cgdemodata(2), xtitle='X Fonts', $
+          ytitle='Y Fonts', ztitle='Z Fonts', $
+          Font=-1, title='Hershey Fonts'
+  cgsurf, cgdemodata(2), xtitle='X Fonts', $
+          ytitle='Y Fonts', ztitle='Z Fonts', $
+          Font=1, title='TrueType Fonts'
+  !p.multi = 0
+  device, /close_file
+  cgfixps, 'idl.ps'
+  set_plot, 'x'
+#+END_SRC
+
+*** Greek characters
+**** using embedded font
+
+#+BEGIN_SRC idl
+  window, /free, xsize=600, ysize=600
+  showfont, 9, 'Symbol'
+#+END_SRC
+
+
+#+BEGIN_SRC idl
+  thisdevice = !d.name
+  set_plot, 'ps'
+  mu = '!9' + String("155B) + '!X'
+  cgplot, cgdemodata(1), font=1, $
+          xtitle='Wavelength (' + mu + 'm)', charsize=1.0
+  device, /close_file
+  set_plot, thisdevice
+#+END_SRC
+
+The /Coyote Library/ contains a program named /cgGreek/ makes it easier for
+us to use Greek font. You can select lowercase Greek letters by
+specifying the Greek letter wanted in lowercase letters. You can select
+uppercase Greek letters either by setting the Capital keyword or by
+making the first letter of the Greek letter name a capital letter.
+
+#+BEGIN_SRC idl
+  void = cggreek(/example)
+#+END_SRC
+**** using /textoidl/
+
+You need to [[http://physics.mnstate.edu/craig/textoidl/][install the TeXtoIDL program]].
+
+#+BEGIN_SRC idl
+  showtex
+#+END_SRC
+
+#+BEGIN_SRC idl
+  cgps_open, 'textoidl.ps'
+  cgdisplay, 500, 100
+  astring = textoidl('\Sigma_{n=1}^{\infty} 1/n^2 = \pi^2/6')
+  xyouts, 0.5, 0.5, align=0.5, charsize=3.0, astring
+  cgps_close, /png, /width=500
+#+END_SRC
+
+#+CAPTION: TeXtoIDL
+#+Attr_LaTeX: :placement [H]
+[[file:img/textoidl.png]]
+**** using /latexify/
+
+See [[http://slugidl.pbworks.com/w/page/37657460/latexify%2520tutorial][Slug's guide]].
+
+#+BEGIN_SRC idl
+  pson, file='latexify.eps', margin=1.0
+  cgplot, findgen(10), xtitle='xt', charsize=1.5, font=0
+  psoff
+  latexify, 'latexify.eps', 'xt', 'Mass [$M_{\odot}$]'
+#+END_SRC
+
+#+caption: latexify
+#+attr_latex: :placement [H]
+[[file:img/latexify.eps]]
+
+*** configuring the PostScript device interactively
+
+
+#+BEGIN_SRC idl
+  keywords = psconfig()
+  thisdevice = !d.name
+  set_plot, 'ps'
+  device, _extra=keywords
+#+END_SRC
+
+If /psconfig/ is called with the /match/ keyword set, the initial window
+configuration will match the aspect ratio of the current graphics window.
+
+#+BEGIN_SRC idl
+  cgdisplay, 600, 300
+  keywords = psconfig(/match)
+  help, keywords, /structure
+#+END_SRC
+
+For font information
+
+#+BEGIN_SRC idl
+  keywords = psconfig(/fontinfo)
+#+END_SRC
+
+
+#+BEGIN_SRC idl
+  thisdevice = !d.name
+  thisfont = !p.font
+  keywords = psconfig(cancel=cancel, /fontinfo, fonttype=1)
+  if cancel then return
+  !p.font = keywords.fonttype
+  set_plot, 'ps'
+  ;; graphics commands here
+  device, /close_file
+  set_plot, thisdevice
+  !p.font = thisfont
+#+END_SRC
+
+If you prefer not to use the graphical user interface to /psconfig/,
+
+#+BEGIN_SRC idl
+  set_plot, 'ps'
+  device, _extra=psconfig(filename='coyote.ps', /match, /nogui)
+#+END_SRC
+
+*** display images in PostScript
+
+#+BEGIN_SRC idl
+  thisdevice = !d.name
+  set_plot, 'ps'
+  image = congrid(cgdemodata(7), 400, 400)
+  device, xsize=5, ysize=5, /inches, decomposed=1
+  tv, image, 0.5, 0.5, xsize=4, ysize=4, /inches
+  cgplot, findgen(100), /nodata, /noerase, $
+          position=[0.1, 0.1, 0.9, 0.9], font=0, charsize=1
+  device, /close_file
+  set_plot, thisdevice
+#+END_SRC
+
+#+BEGIN_SRC idl
+  rose = cgdemodata(16)
+  set_plot, 'ps'
+  image2d = color_quan(rose, 1, r, g, b)
+  tvlct, r, g, b
+  tv, image2d
+  device, /close_file
+#+END_SRC
+
+* COMMENT Z-Graphics buffer output
+* COMMENT Creating raster output
+* COMMENT Basic image processing
+** convolution
+*** smoothing
+**** /smooth/
+**** Gaussian kernel
+*** edge enhancement
+**** Laplacian kernel
+**** gradient filter
+***** /Sobel/
+***** /Roberts/
+** noise reduction
+*** /Median/
+*** /LeeFit/
+*** Frequency Mask
+*** /Hanning/
+** contrast enhancement
+*** /BytScl/
+
+Byte scale your data
+
+#+BEGIN_SRC idl
+  byteData1=BytScl(data,Top=15)
+  byteData2=BytScl(data,Min=min,Max=max)
+#+END_SRC
+
+*** Histogram Equalization
+**** /Hist_Equal/
+**** /Adapt_Hist_Equal/
+*** /Xstretch/ (/Coyote Library/)
+** frequency filtering
+*** /Butterworth/
+*** /Gaussian/
+* COMMENT Region of interest(ROIs)
+** image preparation
+
+using /Xstretch/ to isolate the ROI from its background
+
+** image thresholding
+
+to create bi-level image
+
+** morphological operators
+
+to clean up bi-level image
+
+- /erosion/
+- /dilation/
+- /Morph_Close/
+- /Morph_Open/
+
+** label region
+
+using /Label_Region/ to label connected regions or blobs with an unique
+long integer value
+
+** processing ROIs
+
+using /Histogram/ command with /reverse_indices/ keyword to get pixels
+of ROIs
+
+** ROI statistics
+
+using /Image_Statistics/ to get count,maximum,minimum,standard
+deviation and mean value of ROIs
+
+** ROI morphological properties
+
+get area,center of mass,perimeter length of ROIs using /IsoContour/
+and /ComputeGeometry/ or /Find_Boundary/ command from the
+/Coyote Library/
+
+** fitting an ellipse to the ROI
+
+using /Fit_Ellipse/ from the /Coyote Library/
+
+** image mask
+*** using the /OpenImage/ created by /Morph_Open/
+*** a bi-level image that has not been cleaned up
+** blob analyzer
+
+a /Coyote Library/ program /Blob_Analyzer/ witch will automatically
+find the blobs in the image (using /Label_Region/) and calculate
+statistics for each of the blobs (using /Find_Boundary/ and
+/Fit_Ellipse/).
