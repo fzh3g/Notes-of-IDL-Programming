@@ -1,4 +1,4 @@
-#+TITLE: Notes of IDL Programming
+#+TITLE: Notes of IDL Programming V1.0
 #+AUTHOR: Faxiang Zheng
 #+OPTIONS: H:3 toc:nil ^:nil
 #+HTML_HEAD: <style>table.center {margin-left:auto; margin-right:auto;}</style>
