@@ -2591,7 +2591,7 @@ To time an operation
   cgSurf, cgDemoData(2), /elevation, layout=[2, 2, 4], $
           palette=palette, /addcmd
   cgImage, cgDemoData(19), multimargin=4, /axes, $
-          layout=[2, 2, 2], /addcmd
+           layout=[2, 2, 2], /addcmd
 #+END_SRC
 
 #+CAPTION: Resizable Window
@@ -2603,9 +2603,9 @@ To time an operation
 
 #+BEGIN_SRC idl
   window
-  device,get_visual_name=theVisual,$
-      get_visual_depth=theDepth
-  print,theVisual,theDepth
+  device, get_visual_name=theVisual, $
+          get_visual_depth=theDepth
+  print, theVisual, theDepth
 #+END_SRC
 
 Normally, you will get 'TrueColor' and '24'. *If not*, add following
@@ -2619,7 +2619,7 @@ content to your ~/.Xdefaults
 Or,add following command to your IDL startup file
 
 #+BEGIN_SRC idl
-  Device,TrueColor=24
+  Device, TrueColor=24
 #+END_SRC
 
 ** color models
@@ -2641,9 +2641,9 @@ known as /true color/.
 In /decomposed/ color model,
 
 #+BEGIN_SRC idl
-  device,decomposed=1
-  clr=[R,G,B]
-  DecomposedColor=clr[0]+clr[1]*2L^8+clr[2]*2L^16
+  device, decomposed=1
+  clr = [R,G,B]
+  DecomposedColor = clr[0] + clr[1] * 2L ^ 8 + clr[2] * 2L ^ 16
 #+END_SRC
 
 #+CAPTION: decomposed color, /credit: David W. Fanning/
@@ -2654,9 +2654,9 @@ Things differ in /indexed/ color model.Suppose we load a  at color
 index 100 with the /TVLCT/ command, like this
 
 #+BEGIN_SRC idl
-  device,decomposed=0
-  TVLCT,R,G,B,100
-  IndexColor=100
+  device, decomposed=0
+  TVLCT, R, G, B, 100
+  IndexColor = 100
 #+END_SRC
 
 #+CAPTION: indexed color, /credit: David W. Fanning/
@@ -2676,7 +2676,7 @@ program
 *** /TvLCT/
 
 #+BEGIN_SRC idl
-  TvLCT,red,green,blue,position
+  TvLCT, red, green, blue, position
 #+END_SRC
 
 use /CIndex/ command to see the result
