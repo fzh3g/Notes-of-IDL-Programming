@@ -3938,7 +3938,7 @@ display true color image
 
 #+BEGIN_SRC idl
   rose = cgDemoData(16)
-  tv,rose,true=1
+  tv, rose, true=1
 #+END_SRC
 
 Unfortunately The /TV/ command wouldn’t display an alpha channel image
@@ -3963,9 +3963,9 @@ http://www.gumley.com/PIP/Programs/imdisp.pro
 ** positioning
 
 #+BEGIN_SRC idl
-  position=[0.15,0.15,0.9,0.9]
-  stern=(cgdemodata(10))[*,*,1]
-  cgimage,stern,position=position
+  position = [0.15,0.15,0.9,0.9]
+  stern = (cgdemodata(10))[*, *, 1]
+  cgimage, stern, position=position
 #+END_SRC
 
 #+CAPTION: cgImage
@@ -3973,9 +3973,9 @@ http://www.gumley.com/PIP/Programs/imdisp.pro
 [[file:img/cgimage_stern.png]]
 
 #+BEGIN_SRC idl
-  position=[0.15,0.15,0.9,0.9]
-  stern=(cgdemodata(10))[*,*,1]
-  cgimage,stern,position=position,/keep_aspect
+  position = [0.15,0.15,0.9,0.9]
+  stern = (cgdemodata(10))[*,*,1]
+  cgimage, stern, position=position, /keep_aspect
 #+END_SRC
 
 #+CAPTION: cgImage keep aspect
@@ -3983,9 +3983,9 @@ http://www.gumley.com/PIP/Programs/imdisp.pro
 [[file:img/cgImage_stern_keep_aspect.png]]
 
 #+BEGIN_SRC idl
-  cgImage, stern, Margin=0.1, /Keep_Aspect, /Axes,$
-      XRange=[-10,10], YRange=[0,50], Color='navy',$
-      AxKeywords={XTicklen:-0.035, YTickLen:-0.035}
+  cgImage, stern, Margin=0.1, /Keep_Aspect, /Axes, $
+           XRange=[-10,10], YRange=[0,50], Color='navy', $
+           AxKeywords={XTicklen:-0.035, YTickLen:-0.035}
 #+END_SRC
 
 #+CAPTION: cgImage coordinate
@@ -3994,14 +3994,14 @@ http://www.gumley.com/PIP/Programs/imdisp.pro
 ** erase graphics window before display
 
 #+BEGIN_SRC idl
-  cgErase,'white'
-  cgImage,stern,margin=0.1
+  cgErase, 'white'
+  cgImage, stern, margin=0.1
 #+END_SRC
 ** image backgrounds
 
 #+BEGIN_SRC idl
-  cgImage,stern,background='wheat',margin=0.15,/axes,$
-      color='opposite'
+  cgImage, stern, background='wheat', margin=0.15, /axes, $
+           color='opposite'
 #+END_SRC
 
 by setting the axes color to /opposite/,/cgColor/ will calculate
@@ -4009,9 +4009,9 @@ a color that contrast with the background color
 ** display images with colors
 
 #+BEGIN_SRC idl
-  cgLoadCT,13,/brewer,/reverse,rgb_table=palette
-  cgImage,stern,background='wheat',margin=0.15,$
-      /axes,color='opposite',palette=palette
+  cgLoadCT, 13, /brewer, /reverse, rgb_table=palette
+  cgImage, stern, background='wheat', margin=0.15, $
+           /axes, color='opposite', palette=palette
 #+END_SRC
 
 #+CAPTION: cgImage color
@@ -4020,10 +4020,10 @@ a color that contrast with the background color
 ** combining images with other graphical display
 
 #+BEGIN_SRC idl
-  image=cgDemoData(18)
-  cgLoadCT,4,/brewer,/reverse
-  cgImage,image,/save,/axes,/keep_aspect
-  cgContour,image,nlevels=10,label=2,/overplot
+  image = cgDemoData(18)
+  cgLoadCT, 4, /brewer, /reverse
+  cgImage, image, /save, /axes, /keep_aspect
+  cgContour, image, nlevels=10, label=2, /overplot
 #+END_SRC
 
 #+CAPTION: cgImage color
@@ -4054,32 +4054,32 @@ display and returns the value in that place, interactively
 
 #+BEGIN_SRC idl
   Cursor, xloc, yloc, /Down, /Device
-  normalcoords=convert_coord(xloc,yloc,/device,/to_normal)
-  xn=normalcoords[0]
-  yn=normalcoords[1]
-  p=position
-  dims=image_dimensions(image,xsize=xsize,ysize=ysize)
-  xvec=scale_vector(findgen(xsize+1),p[0],p[2])
-  yvec=scale_vector(findgen(xsize+1),p[1],p[3])
-  xpixel=value_locate(xvec,xn)
-  ypixel=value_locate(yvec,yn)
-  print,image[xpixel,ypixel]
+  normalcoords = convert_coord(xloc, yloc, /device, /to_normal)
+  xn = normalcoords[0]
+  yn = normalcoords[1]
+  p = position
+  dims=image_dimensions(image, xsize=xsize, ysize=ysize)
+  xvec = scale_vector(findgen(xsize + 1), p[0], p[2])
+  yvec = scale_vector(findgen(xsize + 1), p[1], p[3])
+  xpixel = value_locate(xvec, xn)
+  ypixel = value_locate(yvec, yn)
+  print, image[xpixel, ypixel]
 #+END_SRC
 ** zooming images
 *** for non-true-color images
 
 #+BEGIN_SRC idl
-  minimg=min(stern,max=maximg)
-  subregion=stern[50:99,50:99]
-  window,xsize=400,ysize=400
-  cgimage,bytscl(subregion,min=minimg,max=maximg)
+  minimg = min(stern, max=maximg)
+  subregion = stern[50:99, 50:99]
+  window, xsize=400, ysize=400
+  cgimage, bytscl(subregion, min=minimg, max=maximg)
 #+END_SRC
 *** for true-color-images
 
 #+BEGIN_SRC idl
-  rose=cgdemodata(16)
-  subregion=rose[*,50:100,50:100]
-  cgimage,subregion
+  rose = cgdemodata(16)
+  subregion = rose[*, 50:100, 50:100]
+  cgimage, subregion
 #+END_SRC
 *** /FSC_ZImage/
 
@@ -4087,24 +4087,24 @@ an interactive zoom image program from /Coyote Library/
 ** multiple images
 
 #+BEGIN_SRC idl
-  head=cgdemodata(8)
-  head=reverse(head,2)
-  s=size(head,/dimensions)
-  cgloadct,0
-  cgdisplay,9*s[0],6*s[1]
-  !p.multi=[0,9,6]
-  !x.omargin=[0,25]
-  !y.omargin=[0,8]
-  for j=0,53 do cgimage,head[*,*,j],$
-      background='white',multimargin=0.25
-  !p.multi=0
-  cgColorbar,/vertical,range=[0,10],$
-      position=[0.94,0.15,0.97,0.80],$
-      format='(F0.2)'
-  cgtext,0.45,0.95,'MRI Study of the Head',$
-      /normal,Alignment=0.5
-  !x.omargin=0
-  !y.omargin=0
+  head = cgdemodata(8)
+  head = reverse(head, 2)
+  s=size(head, /dimensions)
+  cgloadct, 0
+  cgdisplay, 9*s[0], 6*s[1]
+  !p.multi = [0, 9, 6]
+  !x.omargin = [0, 25]
+  !y.omargin = [0, 8]
+  for j=0, 53 do cgimage, head[*, *, j], $
+                          background='white', multimargin=0.25
+  !p.multi = 0
+  cgColorbar, /vertical, range=[0, 10], $
+              position=[0.94, 0.15, 0.97, 0.80], $
+              format='(F0.2)'
+  cgtext, 0.45, 0.95, 'MRI Study of the Head', $
+          /normal, Alignment=0.5
+  !x.omargin = 0
+  !y.omargin = 0
 #+END_SRC
 
 #+CAPTION: cgImage Multi-display
@@ -4116,18 +4116,18 @@ margins about the bottom, left, top, and right of the image,
 respectively.
 
 #+BEGIN_SRC idl
-  loadct,33,/silent
-  !p.multi=[0,2,2]
-  margin=[4,4,2,0]
-  cgimage,cgdemodata(18),/keep_aspect,/axes,$
-      multimargin=margin
-  cgimage,cgdemodata(18),/keep_aspect,/axes,$
-      multimargin=margin
-  cgimage,cgdemodata(18),/keep_aspect,/axes,$
-      multimargin=margin
-  cgimage,cgdemodata(18),/keep_aspect,/axes,$
-      multimargin=margin
-  !p.multi=0
+  loadct, 33, /silent
+  !p.multi = [0, 2, 2]
+  margin = [4, 4, 2, 0]
+  cgimage, cgdemodata(18), /keep_aspect, /axes, $
+           multimargin=margin
+  cgimage, cgdemodata(18), /keep_aspect, /axes, $
+           multimargin=margin
+  cgimage, cgdemodata(18), /keep_aspect, /axes, $
+           multimargin=margin
+  cgimage, cgdemodata(18), /keep_aspect, /axes, $
+           multimargin=margin
+  !p.multi = 0
 #+END_SRC
 
 #+CAPTION: cgImage MultiMargin
@@ -4147,12 +4147,12 @@ download a png file from
 [[http://www.idlcoyote.com/books/tg/data/toucan.png]]
 
 #+BEGIN_SRC idl
-  toucan=read_png('toucan.png')
-  !p.multi=[0,2,1]
-  window,xsize=162*2,ysize=150
-  cgimage,toucan[0:2,*,*]
-  cgimage,reform(toucan[3,*,*])
-  !p.multi=0
+  toucan = read_png('toucan.png')
+  !p.multi = [0, 2, 1]
+  window, xsize=162*2, ysize=150
+  cgimage, toucan[0:2, *, *]
+  cgimage, reform(toucan[3, *, *])
+  !p.multi = 0
 #+END_SRC
 
 #+CAPTION: cgImage separate alpha
@@ -4160,9 +4160,9 @@ download a png file from
 [[file:img/cgimage_separate_alpha.png]]
 
 #+BEGIN_SRC idl
-  window,xsize=400,ysize=400
-  cgerase,color='bisque'
-  cgimage,toucan,/keep_aspect,/noerase,margin=0.2
+  window, xsize=400, ysize=400
+  cgerase, color='bisque'
+  cgimage, toucan, /keep_aspect, /noerase, margin=0.2
 #+END_SRC
 
 #+CAPTION: cgImage alpha channel image
@@ -4170,12 +4170,12 @@ download a png file from
 [[file:img/cgImage_transparent.png]]
 
 #+BEGIN_SRC idl
-  window,1,xsize=400,ysize=400
-  marsfile = Filepath(Subdir=['examples', 'data'],$
+  window, 1, xsize=400, ysize=400
+  marsfile = Filepath(Subdir=['examples',  'data'], $
                       'marsglobe.jpg')
-  read_jpeg,marsfile,mars
-  cgimage,mars
-  cgimage,toucan,alphafgpos=[0.3,0.3,0.7,0.7]
+  read_jpeg, marsfile, mars
+  cgimage, mars
+  cgimage, toucan, alphafgpos=[0.3, 0.3, 0.7, 0.7]
 #+END_SRC
 
 #+CAPTION: cgImage alpha channel image with background image
@@ -4225,11 +4225,11 @@ or you can use /cgBlendImage/ program from /Coyote Library/
   Window, XSize=375, YSize=150
   cgImage, logo, /NoInterp
   logo24 = cgSnapshot()
-  alpha=bytarr(375,150)+255B
-  logo24 = Transpose(logo24, [1,2,0])
-  red=logo24[*,*,0]
-  grn=logo24[*,*,1]
-  blu=logo24[*,*,2]
+  alpha = bytarr(375,150)+255B
+  logo24 = Transpose(logo24, [1, 2, 0])
+  red = logo24[*, *, 0]
+  grn = logo24[*, *, 1]
+  blu = logo24[*, *, 2]
   blackIndices = Where( (red EQ 0) AND (grn EQ 0) $
                         AND (blu EQ 0), count)
   IF count GT 0 THEN alpha[blackIndices] = 0B
@@ -4237,11 +4237,11 @@ or you can use /cgBlendImage/ program from /Coyote Library/
   logo32 = Transpose(logo32, [2,0,1])
   Write_PNG, 'idl_logo.png', logo32
   image = Make_Transparent_Image(Color='black', $
-                                 Filename='idl_logo.png',$
+                                 Filename='idl_logo.png', $
                                  /Save_PNG)
   Window, XSize=400, YSize=400
   cgImage, mars
-  cgImage, logo32, alphafgpos=[0.30,0.05,0.70,0.25]
+  cgImage, logo32, alphafgpos=[0.30, 0.05, 0.70, 0.25]
 #+END_SRC
 
 #+CAPTION: idl logo
@@ -4256,8 +4256,8 @@ or you can use /cgBlendImage/ program from /Coyote Library/
 #+BEGIN_SRC idl
   cgDisplay, 500, 500
   cgImage, cgDemoData(7), CTIndex=0
-  cgImage, cgDemoData(5), CTIndex=33, Transparent=30,$
-      Missing_Value=0,AlphaFGPos=[0.5, 0.5, 1.0, 1.0]
+  cgImage, cgDemoData(5), CTIndex=33, Transparent=30, $
+           Missing_Value=0, AlphaFGPos=[0.5, 0.5, 1.0, 1.0]
 #+END_SRC
 
 #+CAPTION: cgImage transparent display
@@ -4267,21 +4267,21 @@ or you can use /cgBlendImage/ program from /Coyote Library/
 *** /ImDisp/
 
 #+BEGIN_SRC idl
-  image=cgdemodata(19)
-  cgwindow,'imdisp',image,margin=0.2,/erase
+  image = cgdemodata(19)
+  cgwindow, 'imdisp', image, margin=0.2, /erase
 #+END_SRC
 *** /cgImage/
 
 #+BEGIN_SRC idl
-  cgimage,image,margin=0.2,/window
+  cgimage, image, margin=0.2, /window
 #+END_SRC
 
 when combined with other graphical display
 
 #+BEGIN_SRC idl
-  cgplot,cgdemodata(1),yrange=[0,80],/window
-  cgimage,image,position=[0.7,0.5,0.9,0.9],$
-      /keep_aspect,/addcmd
+  cgplot, cgdemodata(1), yrange=[0, 80], /window
+  cgimage, image, position=[0.7, 0.5, 0.9, 0.9], $
+           /keep_aspect, /addcmd
 #+END_SRC
 
 #+CAPTION: cgImage transparent display
