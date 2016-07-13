@@ -3294,13 +3294,13 @@ Add a color bar
 Surface of 2D data can be easily made using 'surface' command
 
 #+BEGIN_SRC idl
-  peak=cgdemodata(2)
-  lon=findgen(41)*50./41-122
-  lat=findgen(41)*(24./40)+24
-  surface,peak,lon,lat,xtitle='longitude',$
-          ytitle='latitude',ztitle='elevation', charsize=2.5, $
-          color=cgcolor('black'), background=cgcolor('white'), $
-          xstyle=1, ystyle=1, zstyle=0
+  peak = cgdemodata(2)
+  lon = findgen(41) * 50. / 41 - 122
+  lat = findgen(41) * (24. / 40) + 24
+  surface, peak, lon, lat, xtitle='longitude', $
+           ytitle='latitude', ztitle='elevation', charsize=2.5, $
+           color=cgcolor('black'), background=cgcolor('white'), $
+           xstyle=1, ystyle=1, zstyle=0
 #+END_SRC
 
 #+CAPTION: surface
@@ -3308,9 +3308,9 @@ Surface of 2D data can be easily made using 'surface' command
 [[file:img/surface.png]]
 
 #+BEGIN_SRC idl
-  cgsurface,peak,lon,lat,xtitle='longitude',$
-            ytitle='latitude',ztitle='elevation', $
-            xstyle=1, ystyle=1, zstyle=0
+  cgsurface, peak, lon, lat, xtitle='longitude', $
+             ytitle='latitude',ztitle='elevation', $
+             xstyle=1, ystyle=1, zstyle=0
 #+END_SRC
 
 ** title
@@ -3318,8 +3318,8 @@ Surface of 2D data can be easily made using 'surface' command
 We usually use /xyouts/ to make title of the surface
 
 #+BEGIN_SRC idl
-  xyouts,0.5,0.90,/normal,size=2.0,'Surface',align=0.5, $
-         color=cgcolor('black')
+  xyouts, 0.5, 0.90, /normal, size=2.0, 'Surface', align=0.5, $
+          color=cgcolor('black')
 #+END_SRC
 
 #+CAPTION: xyouts
@@ -3331,8 +3331,8 @@ We usually use /xyouts/ to make title of the surface
 The default value of /A[xz]/ is 30
 
 #+BEGIN_SRC idl
-  surface,peak,lon,lat,Ax=60,Az=60,charsize=2.5, $
-          color=cgcolor('black'), background=cgcolor('white')
+  surface, peak, lon, lat, Ax=60, Az=60, charsize=2.5, $
+           color=cgcolor('black'), background=cgcolor('white')
 #+END_SRC
 
 #+CAPTION: surface rotating
@@ -3447,9 +3447,9 @@ The default value of /A[xz]/ is 30
 ** shaded surface
 
 #+BEGIN_SRC idl
-  shade_surf,peak,lon,lat,Az=45, charsize=2.0, $
-             color=cgcolor('black'), $
-             background=cgcolor('white')
+  shade_surf, peak, lon, lat, Az=45, charsize=2.0, $
+              color=cgcolor('black'), $
+              background=cgcolor('white')
 #+END_SRC
 
 #+CAPTION: shaded surface
