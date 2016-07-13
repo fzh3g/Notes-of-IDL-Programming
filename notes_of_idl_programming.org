@@ -4187,15 +4187,15 @@ download a png file from
   scanfile = Filepath(Subdir=['examples','data'], $
                       'md1107g8a.jpg')
   Read_JPEG, scanfile, scan
-  marsfile = Filepath(Subdir=['examples', 'data'],$
+  marsfile = Filepath(Subdir=['examples', 'data'], $
                       'marsglobe.jpg')
-  read_jpeg,marsfile,mars
-  window,xsize=400,ysize=400
+  read_jpeg, marsfile, mars
+  window, xsize=400, ysize=400
   LoadCT, 0
   cgImage, scan, /NoInterp
   snapshot = cgSnapshot()
   alpha = 0.6
-  blended = (snapshot * alpha) + (mars * (1-alpha))
+  blended = (snapshot * alpha) + (mars * (1 - alpha))
   Window, XSize=400*3, YSize=400
   !P.Multi = [0,3,1]
   cgImage, mars
@@ -4211,8 +4211,8 @@ download a png file from
 or you can use /cgBlendImage/ program from /Coyote Library/
 
 #+BEGIN_SRC idl
-  window,xsize=400,ysize=400
-  cgBlendImage,snapshot,mars,alpha=0.6
+  window, xsize=400, ysize=400
+  cgBlendImage, snapshot, mars, alpha=0.6
 #+END_SRC
 *** creating transparent images
 
@@ -4396,7 +4396,7 @@ sent to a PostScript file, you have to 'fill' the PostScript file first.
   device, filename='plot_fill_back.ps'
   device, /color, bits_per_pixel=8
   cgsetcolorstate, 1, currentstate=currentstate
-  polyfill, [0,1,1,0,0], [0,0,1,1,0], /normal, $
+  polyfill, [0, 1, 1, 0, 0], [0, 0, 1, 1, 0], /normal, $
             color=cgcolor('wheat')
   plot, cgdemodata(1), color=cgcolor('opposite'), $
         /noerase
