@@ -2692,11 +2692,11 @@ used to load standard color tables come with IDL
 ** simple curve
 
 #+BEGIN_SRC idl
-  curve=cgdemodata(1)
+  curve = cgdemodata(1)
   time = (findgen(100) + 1) * 6.0 / 100
-  plot,time,curve,xtitle='time axis',ytitle='signal strength',$
-       title='experiment 35M',charsize=1.5, color=cgcolor('black'), $
-       background=cgcolor('white')
+  plot, time, curve, xtitle='time axis', ytitle='signal strength', $
+        title='experiment 35M', charsize=1.5, color=cgcolor('black'), $
+        background=cgcolor('white')
 #+END_SRC
 
 #+CAPTION: simple plot
@@ -2726,11 +2726,11 @@ we can create second y axis by /save/ keyword
 
 #+BEGIN_SRC idl
   plot, curve, ystyle=8, ytitle='solid line', $
-        position=[0.13,0.15,0.85,0.95], color=cgcolor('black'), $
+        position=[0.13, 0.15, 0.85, 0.95], color=cgcolor('black'), $
         background=cgcolor('white'), charsize=1.5
-  axis, yaxis=1, yrange=[0,max(curve*5+1)], /save, $
+  axis, yaxis=1, yrange=[0, max(curve * 5 + 1)], /save, $
         ytitle='dashed line', color=cgcolor('black'), charsize=1.5
-  oplot, curve*5, linestyle=2, color=cgcolor('black')
+  oplot, curve * 5, linestyle=2, color=cgcolor('black')
 #+END_SRC
 
 #+CAPTION: oplot two y axis
@@ -2848,7 +2848,7 @@ all are cumulative
 when [xy]ticklen=1
 
 #+BEGIN_SRC idl
-  plot, time, curve, xstyle=9, ystyle=1, xticklen=1, xgridstyle=1,$
+  plot, time, curve, xstyle=9, ystyle=1, xticklen=1, xgridstyle=1, $
         yticklen=1, ygridstyle=1, color=cgcolor('black'), $
         background=cgcolor('white')
 #+END_SRC
