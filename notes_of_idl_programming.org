@@ -172,7 +172,7 @@ If your IDL version is 7.1, you might have to do something to fix a bug.
 **** /size/
 
 #+BEGIN_SRC idl
-  a=[[0, 1, 1], [2, 2, 1]]
+  a = [[0, 1, 1], [2, 2, 1]]
   print, 'Number of dimensions:', size(a, /n_dimensions)
   print, 'Size of each dimension:', size(a, /dimensions)
   print, 'Number of elements:', size(a, /n_elements)
