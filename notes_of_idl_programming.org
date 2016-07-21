@@ -4951,8 +4951,6 @@ If you prefer not to use the graphical user interface to /psconfig/,
   device, /close_file
 #+END_SRC
 
-* COMMENT Z-Graphics buffer output
-* COMMENT Creating raster output
 * COMMENT Basic image processing
 ** convolution
 *** smoothing
