@@ -280,18 +280,6 @@ whether a variable (array or otherwise) is defined.
   print, vector2
 #+END_SRC
 
-different from python
-
-#+BEGIN_SRC python :results output
-  import numpy as np
-  vector1 = np.arange(4)
-  vector2 = vector1[0:2]
-  print("vector2 = ", vector2)
-#+END_SRC
-
-#+RESULTS:
-: vector2 =  [0 1]
-
 array slicing is just the same
 you can easily get a row of the array or a subarray through it's indices
 
@@ -4861,7 +4849,7 @@ You need to [[http://physics.mnstate.edu/craig/textoidl/][install the TeXtoIDL p
   cgdisplay, 500, 100
   astring = textoidl('\Sigma_{n=1}^{\infty} 1/n^2 = \pi^2/6')
   xyouts, 0.5, 0.5, align=0.5, charsize=3.0, astring
-  cgps_close, /png, /width=500
+  cgps_close, /png, width=500
 #+END_SRC
 
 #+CAPTION: TeXtoIDL
