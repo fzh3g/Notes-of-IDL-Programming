@@ -139,8 +139,6 @@ If your IDL version is 7.1, you might have to do something to fix a bug.
 - [[http://astroplotlib.stsci.edu/]]
 - [[http://slugidl.pbworks.com/w/page/28913791/Plotting%2520Examples]]
 - [[http://www.astrobetter.com/wiki/tiki-index.php?page=Python+Switchers+Guide]]
-- url: https://pan.baidu.com/s/1eSlZ7vO passwd: t4x3
-- url: https://pan.baidu.com/s/1mhSk4YW passwd: h83i
 * Call system commands
 ** spawn
 
