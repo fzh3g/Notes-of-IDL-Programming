@@ -126,7 +126,7 @@ If your IDL version is 7.1, you might have to do something to fix a bug.
          /usr/local/itt/idl71/help/online_help/
   #+END_SRC
 
-- open your Emacs and  /M-x idl-rescan-asynchronously/
+- open your Emacs and  /M-x idlwave-rescan-asynchronously/
 
 *Happy hacking!*
 ** resources
