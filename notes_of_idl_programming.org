@@ -75,7 +75,7 @@ commands
 #+END_SRC
 ** setting PATH
 
-Add the following to your ~/.profile (bash user) or ~/.zshenv (zsh user)
+Add the following to your ~/.profile (bash user) or ~/.zprofile (zsh user)
 
 #+BEGIN_SRC sh
   # IDL setting
@@ -93,7 +93,7 @@ Add the following to your ~/.profile (bash user) or ~/.zshenv (zsh user)
 
 You can, of course, name the start-up file anything you like and locate it
 anywhere in your directory structure. For example, add the following to
-your ~/.profile (bash user) or ~/.zshenv (zsh user)
+your ~/.profile (bash user) or ~/.zprofile (zsh user)
 
 #+BEGIN_SRC sh
   export IDL_STARTUP=$HOME/.idlstartup.pro
