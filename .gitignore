@@ -6,3 +6,4 @@ notes_of_idl_programming.tex
 .fuse*
 *.fdb_latexmk
 *.fls
+*.xdv
